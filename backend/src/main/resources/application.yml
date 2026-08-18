@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: the-helper-rag-backend
+  main:
+    web-application-type: reactive
+
+sidecar:
+  url: ${SIDECAR_URL:http://127.0.0.1:8001}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-2.5-flash}
+  temperature: 0.2
+  base-url: https://generativelanguage.googleapis.com/v1beta
+
+storage:
+  data-dir: ${DATA_DIR:./data}

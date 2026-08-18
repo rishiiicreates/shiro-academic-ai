@@ -1,0 +1,314 @@
+{
+  "total": 10,
+  "passed": 10,
+  "success_rate": 100.0,
+  "timestamp": "2026-08-17 09:08:30",
+  "results": [
+    {
+      "id": "eval_01",
+      "category": "In-Scope (Syllabus)",
+      "question": "What is Priority Scheduling in Operating Systems and what problem can occur with low priority processes?",
+      "subject": "Operating Systems",
+      "passed": true,
+      "elapsed_seconds": 2.41,
+      "sources_count": 5,
+      "top_source": {
+        "id": "b805407465000a9c4a4121fd5a963cd2",
+        "text": "Priority Scheduling (Preemptive) \u26abConsider the example with seven process. 21",
+        "similarity": 0.6737,
+        "distance": 0.3263,
+        "metadata": {
+          "formattedCitation": "[Operating Systems | Notes | Unit 3.pdf (Page 21)]",
+          "file_name": "Unit 3.pdf",
+          "page_num": "21",
+          "subject": "Operating Systems",
+          "semester": "Semester 3",
+          "category": "Notes",
+          "unit": "Unit 3.pdf",
+          "rel_path": "Semester 3/Operating Systems/Notes/Unit 3.pdf"
+        }
+      },
+      "answer": "### Priority Scheduling in Operating Systems\n\nPriority scheduling is a method where a priority number (represented as an integer) is associated with each process. The CPU is allocated to the process with the highest priority, which is defined as the smallest integer [Operating Systems | Notes | Unit 3.pdf (Page 19)].\n\n#### Key Characteristics\n*   **Scheduling Types:** Priority scheduling can be either preemptive or nonpreemptive [Operating Systems | Notes | Unit 3.pdf (Page 19)].\n*   **SJF Relationship:** Shortest Job First (SJF) is considered a form of priority scheduling where the priority is the inverse of the predicted next CPU burst time [Operating Systems | Notes | Unit 3.pdf (Page 19)].\n*   **Real-Time Systems:** In real-time operating systems, priority-based algorithms with preemption are used to ensure immediate response to critical processes. In this context, processes are assigned priorities based on their importance [Operating Systems | Notes | Unit 3.pdf (Page 34)].\n\n#### Issues and Solutions\n*   **Problem (Starvation):** A significant issue with priority scheduling is starvation, where low-priority processes may never execute [Operating Systems | Notes | Unit 3.pdf (Page 19)].\n*   **Solution (Aging):** To address starvation, the system can use \"aging,\" a technique where the priority of a process is increased as time progresses [Operating Systems | Notes | Unit 3.pdf (Page 19)].",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_02",
+      "category": "In-Scope (Syllabus)",
+      "question": "What are the main states of a process and process scheduling queues in OS?",
+      "subject": "Operating Systems",
+      "passed": true,
+      "elapsed_seconds": 1.49,
+      "sources_count": 5,
+      "top_source": {
+        "id": "0c9acfef68e08676cb2462c1309b09c8",
+        "text": "Process Scheduling \u2022 Maximize CPU use, quickly switch processes onto CPU for time sharing \u2022 Process scheduler selects among available processes for next execution on CPU \u2022 Maintains scheduling queues of processes \u2013 Job queue \u2013 set of all processes in the system \u2013 Ready queue \u2013 set of all processes residing in main memory, ready and waiting to execute \u2013 Device queues \u2013 set of processes waiting for an I/O device \u2013 Processes migrate among the various queues * 13 21CSC202J Operating Systems UNIT 2",
+        "similarity": 0.6487,
+        "distance": 0.3513,
+        "metadata": {
+          "formattedCitation": "[Operating Systems | Notes | Unit 2.pdf (Page 13)]",
+          "file_name": "Unit 2.pdf",
+          "page_num": "13",
+          "subject": "Operating Systems",
+          "semester": "Semester 3",
+          "category": "Notes",
+          "unit": "Unit 2.pdf",
+          "rel_path": "Semester 3/Operating Systems/Notes/Unit 2.pdf"
+        }
+      },
+      "answer": "Based on the provided course materials, here is the information regarding process scheduling queues:\n\n### Process Scheduling Queues\nThe process scheduler maintains several queues to manage processes as they migrate through the system:\n\n*   **Job Queue:** Contains the set of all processes in the system [Operating Systems | Notes | Unit 2.pdf (Page 13)].\n*   **Ready Queue:** Contains the set of all processes residing in main memory that are ready and waiting to execute [Operating Systems | Notes | Unit 2.pdf (Page 13)].\n*   **Device Queues:** Contains the set of processes waiting for an I/O device [Operating Systems | Notes | Unit 2.pdf (Page 13)].\n\nThese queues, along with resources and flows, can be represented using a queueing diagram [Operating Systems | Notes | Unit 2.pdf (Page 15)].\n\n***\n\n**Note:** The provided syllabus and course materials do not contain information regarding the \"main states of a process.\"",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_03",
+      "category": "In-Scope (Syllabus)",
+      "question": "State the Cayley-Hamilton Theorem and explain how it helps find matrix inverse or higher powers.",
+      "subject": "Calculus And Linear Algebra",
+      "passed": true,
+      "elapsed_seconds": 2.93,
+      "sources_count": 5,
+      "top_source": {
+        "id": "6e30bad42df2e59927707cf06ddf7af8",
+        "text": "SRM Institute of Science and Technology Department of Mathematics 21MAB101T-CALCULUS & LINEAR ALGEBRA ACADEMIC YEAR 2022-2023 (ODD) Tutorial 2 (Unit-I) 1. Verify Cayley Hamilton theorem and \ufb01nd A\u22121 for A = \uf8eb \uf8ed 1 2 \u22122 \u22121 3 0 0 \u22122 1 \uf8f6 \uf8f8 2. Verify Cayley-Hamilton theorem and \ufb01nd A5 + 5A4 \u22126A3 + 2A2 \u22124A + 7I for A = 1 4 2 3 . 3. Diagonalize the matrix \uf8eb \uf8ed 4 2 2 2 4 2 2 2 4 \uf8f6 \uf8f8. 4. Diagonalize the matrix \uf8eb \uf8ed 2 \u22121 1 \u22121 2 \u22121 1 \u22121 2 \uf8f6 \uf8f8via orthogonal transformation. 5. Diagonalize the matrix A = \uf8eb \uf8ed 2 \u22122 0 \u22122 1 \u22122 0 \u22122 0 \uf8f6 \uf8f8orthogonally. 1",
+        "similarity": 0.6894,
+        "distance": 0.3106,
+        "metadata": {
+          "formattedCitation": "[Calculus And Linear Algebra | Notes | Unit 1 Matrices Tutorial 2.pdf (Page 1)]",
+          "file_name": "Unit 1 Matrices Tutorial 2.pdf",
+          "page_num": "1",
+          "subject": "Calculus And Linear Algebra",
+          "semester": "Semester 1",
+          "category": "Notes",
+          "unit": "Chapter 1_ Matrices",
+          "rel_path": "Semester 1/Calculus And Linear Algebra/Notes/Chapter 1_ Matrices/Unit 1 Matrices Tutorial 2.pdf"
+        }
+      },
+      "answer": "### Cayley-Hamilton Theorem\n\n#### Definition\nThe Cayley-Hamilton Theorem states that every square matrix satisfies its own characteristic equation. If $A$ is an $n \\times n$ matrix and its characteristic equation is:\n$$\\lambda^n - S_1\\lambda^{n-1} + S_2\\lambda^{n-2} - S_3\\lambda^{n-3} \\dots + (-1)^nS_n = 0$$\nThen the matrix $A$ satisfies the following:\n$$A^n - S_1A^{n-1} + S_2A^{n-2} - S_3A^{n-3} \\dots + (-1)^nS_nI = 0$$\n[Calculus And Linear Algebra | Notes | Unit 1 Matrices.pdf (Page 24)]\n\n---\n\n#### Finding the Matrix Inverse ($A^{-1}$)\nTo find the inverse of a matrix using the Cayley-Hamilton theorem, you premultiply the characteristic equation by $A^{-1}$. \n\n**Example Process:**\n1. Given the characteristic equation (e.g., $A^3 - 6A^2 + 11A - 6I = 0$), premultiply by $A^{-1}$:\n   $$A^2 - 6A + 11I - 6A^{-1} = 0$$\n2. Rearrange the equation to isolate $A^{-1}$:\n   $$6A^{-1} = A^2 - 6A + 11I$$\n3. Solve for $A^{-1}$ by substituting the known matrix values for $A^2$, $A$, and $I$.\n[Calculus And Linear Algebra | Notes | Unit 1 Matrices.pdf (Page 26)]\n\n---\n\n#### Finding Higher Powers of a Matrix\nThe theorem allows for the calculation of higher powers of a matrix (such as $A^4$) by expressing them in terms of lower-degree matrices derived from the characteristic equation.\n\n**Example Process:**\n1. Once the characteristic equation is verified (e.g., $A^3 - 5A^2 + 9A - I = 0$), you can isolate the highest power:\n   $$A^3 = 5A^2 - 9A + I$$\n2. To find $A^4$, multiply the entire equation by $A$:\n   $$A^4 = 5A^3 - 9A^2 + A$$\n3. Substitute the previously calculated values for $A^3$ and $A^2$ to determine the result for $A^4$.\n[Calculus And Linear Algebra | Notes | Unit 1 Matrices.pdf (Page 28)]",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_04",
+      "category": "In-Scope (Syllabus)",
+      "question": "What are the ACID properties in database transaction management?",
+      "subject": "Database Management Systems",
+      "passed": true,
+      "elapsed_seconds": 1.84,
+      "sources_count": 5,
+      "top_source": {
+        "id": "3e89da3061ed3ca9d1ba5e6a9261c70b",
+        "text": "Properties of Transactions \u2022 Transactions have the following four standard properties, usually referred to by the acronym ACID. Atomicity \u2212 ensures that all operations within the work unit are completed successfully. Otherwise, the transaction is aborted at the point of failure and all the previous operations are rolled back to their former state. Consistency \u2212 ensures that the database properly changes states upon a successfully committed transaction. Isolation \u2212 enables transactions to operate independently of and transparent to each other. Durability \u2212 ensures that the result or effect of a committed transaction persists in case of a system failure.",
+        "similarity": 0.7327,
+        "distance": 0.2673,
+        "metadata": {
+          "formattedCitation": "[Database Management Systems | Notes | Unit 3.pdf (Page 78)]",
+          "file_name": "Unit 3.pdf",
+          "page_num": "78",
+          "subject": "Database Management Systems",
+          "semester": "Semester 4",
+          "category": "Notes",
+          "unit": "Unit 3.pdf",
+          "rel_path": "Semester 4/Database Management Systems/Notes/Unit 3.pdf"
+        }
+      },
+      "answer": "In database transaction management, the **ACID** properties are a set of four characteristics that guarantee the reliability and integrity of database transactions. These properties are defined as follows:\n\n### The ACID Properties\n\n*   **Atomicity**\n    *   Ensures that all operations within a work unit are completed successfully. If a failure occurs, the transaction is aborted, and all previous operations are rolled back to their former state [Database Management Systems | Notes | Unit 3.pdf (Page 78)].\n    *   It guarantees that either all operations of the transaction are properly reflected in the database or none are [Database Management Systems | Notes | Unit 5.pdf (Page 50)].\n*   **Consistency**\n    *   Ensures that the database properly changes states upon a successfully committed transaction [Database Management Systems | Notes | Unit 3.pdf (Page 78)].\n    *   It ensures that the database remains in a valid state [Database Management Systems | Notes | Unit 1.pdf (Page 17)].\n    *   The execution of a transaction in isolation preserves the consistency of the database [Database Management Systems | Notes | Unit 5.pdf (Page 50)].\n*   **Isolation**\n    *   Enables transactions to operate independently of and transparent to each other [Database Management Systems | Notes | Unit 3.pdf (Page 78)].\n    *   Intermediate results of a transaction must be hidden from other concurrently executing transactions. For any two transactions $T_i$ and $T_j$, it must appear to $T_i$ that $T_j$ either finished before $T_i$ started or started after $T_i$ finished [Database Management Systems | Notes | Unit 5.pdf (Page 50)].\n*   **Durability**\n    *   Ensures that the result or effect of a committed transaction persists, even in the event of a system failure [Database Management Systems | Notes | Unit 3.pdf (Page 78)].\n    *   It guarantees that committed transactions are permanent [Database Management Systems | Notes | Unit 1.pdf (Page 17)].",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_05",
+      "category": "In-Scope (Syllabus)",
+      "question": "Explain Dijkstra algorithm for finding the shortest path in a graph.",
+      "subject": "Discrete Mathematics",
+      "passed": true,
+      "elapsed_seconds": 1.99,
+      "sources_count": 5,
+      "top_source": {
+        "id": "4e2b46840dc07e396db711c13631c353",
+        "text": "Graph Theory 143 Dijkstra\u2019s Iteration Number Details of V and L(v) Adjacent vertices of latest v* 0. V0 : A B C D E F G H B and F L(v0) : (0) 1. V1 : A* B C D E F G H D and G L(v1) : \u2014 2 (1) 2. V2 : A* B C D E F* G H C, D and E L(v2) : \u2014 (2) 4 \u2014 7 3. V3 : A* B* C D E F* G H E and H L(v3) : \u2014 \u2014 (4) 4 6 \u2014 4. V4 : A* B* C* D E F* G H \u2014 L(v4) : \u2014 \u2014 \u2014 7 \u2014 (5) Since H is reached from C, C is reached from B and B is reached from A, the shortest path is A \u2013 B \u2013 C \u2013 H. Length of the shortest path = w(AB) + w(BC) + w(CH) = 2 + 2 + 1 = 5. Example 3.14 Find the shorted distance matrix and the corresponding shortest path matrix for all the pairs of vertices in the undirected graph given in Fig. 3.75, using Warshall\u2019s algorithm.",
+        "similarity": 0.6513,
+        "distance": 0.3487,
+        "metadata": {
+          "formattedCitation": "[Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 157)]",
+          "file_name": "T Veerarajan Book.pdf",
+          "page_num": "157",
+          "subject": "Discrete Mathematics",
+          "semester": "Semester 5",
+          "category": "Notes",
+          "unit": "T Veerarajan Book.pdf",
+          "rel_path": "Semester 5/Discrete Mathematics/Notes/T Veerarajan Book.pdf"
+        }
+      },
+      "answer": "### Dijkstra\u2019s Algorithm for Shortest Paths\n\nDijkstra\u2019s algorithm is used to find the length (or weight) of the shortest path between two vertices in a weighted graph [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 145)].\n\n#### Core Process\n*   **Labeling:** The algorithm assigns numerical labels to the vertices [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 145)].\n*   **Permanent Labels:** Vertices are assigned permanent labels, where the permanent label of a destination vertex ($z$) represents the length of the shortest path from the starting vertex ($a$) to that destination [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 146)].\n*   **Identifying the Path:** Once the permanent labels are assigned, the shortest path itself is identified by working backward from the destination vertex ($z$). This involves including the permanently labeled vertices from which the subsequent permanent labels were derived [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 146)].\n\n#### Iterative Execution\nThe algorithm proceeds through a series of iterations. During each step:\n*   The algorithm tracks the details of vertices and their labels ($L(v)$).\n*   It identifies adjacent vertices for the latest permanently labeled vertex (denoted with an asterisk, e.g., $v^*$) [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 157)].\n*   The process continues until the destination vertex is reached [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 157)].\n\n**Example:**\nIn an example provided in the text, the shortest path from vertex A to vertex H was determined to be A \u2013 B \u2013 C \u2013 H, with a total length calculated by the sum of the weights of the edges: $w(AB) + w(BC) + w(CH) = 2 + 2 + 1 = 5$ [Discrete Mathematics | Notes | T Veerarajan Book.pdf (Page 157)].",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_06",
+      "category": "In-Scope (Syllabus)",
+      "question": "Explain the Clausius-Clapeyron equation and its significance in phase equilibria.",
+      "subject": "Chemistry",
+      "passed": true,
+      "elapsed_seconds": 2.81,
+      "sources_count": 5,
+      "top_source": {
+        "id": "a89a6942a840d509a59b73893941ba44",
+        "text": "the molar volume of a liquid, \u0394vapV \u2248 Vm(g) (as in Example 4B.2). Moreover, if the gas behaves perfectly, Vm(g) = RT/p. These two approximations turn the exact Clapeyron equation into = = p T H T RT p p H RT d d \u2206 ( / ) \u2206 vap vap 2 By using dx/x = d ln x, this expression can be rearranged into the Clausius\u2013Clapeyron equation for the variation of vapour pressure with temperature: = p T H RT dln d \u2206vap 2 Clausius\u2013Clapeyron equation (4B.9) Like the Clapeyron equation (which is exact), the Clausius\u2013 Clapeyron equation (which is an approximation) is impor\u00ad tant for understanding the appearance of phase diagrams, particularly the location and shape of the liquid\u2013vapour and solid\u2013vapour phase boundaries.",
+        "similarity": 0.6558,
+        "distance": 0.3442,
+        "metadata": {
+          "formattedCitation": "[Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 165)]",
+          "file_name": "Atkins_ Physical Chemistry 11th Edition.pdf",
+          "page_num": "165",
+          "subject": "Chemistry",
+          "semester": "Semester 1",
+          "category": "Notes",
+          "unit": "Study Material Drive Link",
+          "rel_path": "Semester 1/Chemistry/Notes/Study Material Drive Link/Atkins_ Physical Chemistry 11th Edition.pdf"
+        }
+      },
+      "answer": "### The Clausius\u2013Clapeyron Equation\n\nThe Clausius\u2013Clapeyron equation is an approximate expression used to describe the variation of vapour pressure with temperature for the boundary between a condensed phase (liquid or solid) and its vapour [Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 166)].\n\n#### Mathematical Expression\nThe equation is expressed as:\n$$\\frac{d \\ln p}{dT} = \\frac{\\Delta_{\\text{vap}}H}{RT^2}$$\n[Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 165, 166)]\n\n#### Assumptions\nThe Clausius\u2013Clapeyron equation is derived from the exact Clapeyron equation by applying two specific approximations:\n*   The molar volume of the gas is much larger than the molar volume of the condensed phase ($V_m(g) \\gg V_m(l)$ or $V_m(s)$) [Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 166)].\n*   The vapour behaves as a perfect gas ($V_m(g) = RT/p$) [Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 165, 166)].\n\n#### Significance in Phase Equilibria\n*   **Phase Boundary Analysis:** While the Clapeyron equation is an exact expression for the slope of a phase boundary, the Clausius\u2013Clapeyron equation is an important tool for understanding the appearance of phase diagrams [Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 165, 166)].\n*   **Boundary Mapping:** It is specifically used to determine the location and shape of liquid\u2013vapour and solid\u2013vapour phase boundaries [Chemistry | Notes | Atkins_ Physical Chemistry 11th Edition.pdf (Page 165)].",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_07",
+      "category": "In-Scope (Syllabus)",
+      "question": "What are the limitations and issues with traditional File Processing Systems compared to DBMS?",
+      "subject": "Database Management Systems",
+      "passed": true,
+      "elapsed_seconds": 3.6,
+      "sources_count": 5,
+      "top_source": {
+        "id": "c7a07f71aad6e00a31955b55f44403f9",
+        "text": "Advantage of DBMS over file system \u2714No redundant data \u2714Data Consistency and Integrity \u2714Data Concurrency \u2714Data Security \u2714Data Privacy \u2714Easy access to data \u2714Data Recovery \u2714Flexible 11 Advantage of DBMS over File Processing System",
+        "similarity": 0.6768,
+        "distance": 0.3232,
+        "metadata": {
+          "formattedCitation": "[Database Management Systems | Notes | Unit 1.pdf (Page 11)]",
+          "file_name": "Unit 1.pdf",
+          "page_num": "11",
+          "subject": "Database Management Systems",
+          "semester": "Semester 4",
+          "category": "Notes",
+          "unit": "Unit 1.pdf",
+          "rel_path": "Semester 4/Database Management Systems/Notes/Unit 1.pdf"
+        }
+      },
+      "answer": "Based on the provided course materials, the limitations and issues associated with traditional File Processing Systems compared to a Database Management System (DBMS) are as follows:\n\n### Issues in File Processing Systems\n*   **Data Redundancy:** Data is frequently duplicated across multiple files, which leads to wasted storage space, increased maintenance efforts, and a higher risk of inconsistent data [Database Management Systems | Notes | Unit 1.pdf (Page 4)].\n*   **Data Inconsistency:** Because changes in one file may not be reflected in other related files, the system can produce unreliable information and inaccurate reporting [Database Management Systems | Notes | Unit 1.pdf (Page 4)].\n*   **Lack of Data Integrity:** Without the automated constraints and rules enforced by a DBMS, maintaining data integrity is a manual task, increasing the risk of errors and lower data quality [Database Management Systems | Notes | Unit 1.pdf (Page 6)].\n*   **Limited Security:** File systems typically offer only basic access controls, resulting in a higher risk of unauthorized access, data breaches, and unauthorized modifications [Database Management Systems | Notes | Unit 1.pdf (Page 6)].\n*   **Concurrency Control Problems:** File systems often lack mechanisms to handle concurrent updates by multiple users, which can lead to data corruption and lost updates [Database Management Systems | Notes | Unit 1.pdf (Page 7)].\n*   **Scalability Issues:** As data volume grows, file processing systems may struggle to handle large datasets, leading to reduced performance and longer processing times [Database Management Systems | Notes | Unit 1.pdf (Page 7)].\n*   **Limited Query Capabilities:** These systems often lack a query language, making data retrieval cumbersome and inefficient, which complicates report generation and the extraction of insights [Database Management Systems | Notes | Unit 1.pdf (Page 7)].\n\n### Advantages of DBMS\nIn contrast, a DBMS addresses these issues by providing:\n*   No redundant data [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Data Consistency and Integrity [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Data Concurrency [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Data Security and Privacy [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Easy access to data [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Data Recovery [Database Management Systems | Notes | Unit 1.pdf (Page 11)]\n*   Flexibility [Database Management Systems | Notes | Unit 1.pdf (Page 11)]",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_08",
+      "category": "In-Scope (Syllabus)",
+      "question": "What is the Dining Philosophers Problem and why is it important in synchronization?",
+      "subject": "Operating Systems",
+      "passed": true,
+      "elapsed_seconds": 2.54,
+      "sources_count": 5,
+      "top_source": {
+        "id": "f08d10cad1f55c8f3228f4199ef03836",
+        "text": "Dining-Philosophers Problem Algorithm \u2022 The structure of Philosopher i: do { wait (chopstick[i] ); wait (chopStick[ (i + 1) % 5] ); // eat signal (chopstick[i] ); signal (chopstick[ (i + 1) % 5] ); // think } while (TRUE); \u2022 What is the problem with this algorithm? * 147 21CSC202J Operating Systems UNIT 2",
+        "similarity": 0.7114,
+        "distance": 0.2886,
+        "metadata": {
+          "formattedCitation": "[Operating Systems | Notes | Unit 2.pdf (Page 147)]",
+          "file_name": "Unit 2.pdf",
+          "page_num": "147",
+          "subject": "Operating Systems",
+          "semester": "Semester 3",
+          "category": "Notes",
+          "unit": "Unit 2.pdf",
+          "rel_path": "Semester 3/Operating Systems/Notes/Unit 2.pdf"
+        }
+      },
+      "answer": "### The Dining-Philosophers Problem\n\nThe Dining-Philosophers Problem is a classical synchronization problem used to test newly-proposed synchronization schemes [Operating Systems | Notes | Unit 2.pdf (Page 138)].\n\n#### Definition and Context\n*   **Scenario:** Philosophers spend their lives alternating between thinking and eating [Operating Systems | Notes | Unit 2.pdf (Page 146)].\n*   **Interaction:** Philosophers do not interact with their neighbors, but they occasionally attempt to pick up two chopsticks\u2014one at a time\u2014to eat from a bowl [Operating Systems | Notes | Unit 2.pdf (Page 146)].\n*   **Requirements:** A philosopher needs both chopsticks to eat and must release both when finished [Operating Systems | Notes | Unit 2.pdf (Page 146)].\n*   **Data Structure:** In the case of five philosophers, the shared data consists of a bowl of rice and a semaphore `chopstick[5]` initialized to 1 [Operating Systems | Notes | Unit 2.pdf (Page 146)].\n\n#### Importance in Synchronization\nThe problem is significant because it serves as a benchmark for evaluating synchronization mechanisms [Operating Systems | Notes | Unit 2.pdf (Page 138)]. It highlights critical concurrency issues, specifically:\n*   **Deadlock:** The basic algorithm structure can lead to deadlock [Operating Systems | Notes | Unit 2.pdf (Page 147)].\n*   **Starvation:** Even when solutions are implemented to avoid deadlock, starvation remains a possibility [Operating Systems | Notes | Unit 2.pdf (Page 157)].\n\n#### Deadlock Handling Strategies\nTo address these synchronization challenges, the following strategies are suggested:\n*   Allow at most four philosophers to sit at the table simultaneously [Operating Systems | Notes | Unit 2.pdf (Page 148)].\n*   Allow a philosopher to pick up forks only if both are available (this must be done in a critical section) [Operating Systems | Notes | Unit 2.pdf (Page 148)].\n*   Use an asymmetric solution: odd-numbered philosophers pick up the left chopstick first, while even-numbered philosophers pick up the right chopstick first [Operating Systems | Notes | Unit 2.pdf (Page 148)].",
+      "checks": [
+        "Retrieved 5 source chunks",
+        "Answer contains expected technical concepts",
+        "Includes source citations or chunk bindings"
+      ]
+    },
+    {
+      "id": "eval_09",
+      "category": "Out-of-Scope (Deliberate Non-Syllabus)",
+      "question": "How do I make traditional Italian spaghetti carbonara with egg yolks and guanciale?",
+      "subject": null,
+      "passed": true,
+      "elapsed_seconds": 1.95,
+      "sources_count": 5,
+      "top_source": {
+        "id": "3fbf1df193b0ea18ef08eb8c5cb56244",
+        "text": "densation. Strategy Begin by identifying the strategic bonds\u2014the ones that may be made in a Claisen-type condensa- tion. Once you have found them (there will be two), disconnect each one in turn and attach an alkoxy group to the separated carbonyl carbon. This procedure will give you the two possible starting points for the Claisen-based synthesis. Solution \u2022 The strategic bonds are those connecting the two carbonyl groups to the shared atom between them (arrows). Label them a and b. \u2022 (1) Break each of these bonds, and (2) attach an ethoxy group to the carbonyl fragment (use an ethoxy group because the target molecule is an ethoxy ester).",
+        "similarity": 0.2777,
+        "distance": 0.7223,
+        "metadata": {
+          "formattedCitation": "[Chemistry | Notes | Organic Chemistry Structure and Function 7th Edition.pdf (Page 1085)]",
+          "file_name": "Organic Chemistry Structure and Function 7th Edition.pdf",
+          "page_num": "1085",
+          "subject": "Chemistry",
+          "semester": "Semester 1",
+          "category": "Notes",
+          "unit": "Study Material Drive Link",
+          "rel_path": "Semester 1/Chemistry/Notes/Study Material Drive Link/Organic Chemistry Structure and Function 7th Edition.pdf"
+        }
+      },
+      "answer": "The provided syllabus and course materials do not contain information to answer this question.",
+      "checks": [
+        "Correctly triggered out-of-scope syllabus refusal"
+      ]
+    },
+    {
+      "id": "eval_10",
+      "category": "Out-of-Scope (Deliberate Non-Syllabus)",
+      "question": "What were the worldwide box office earnings of the movie Avengers Endgame in 2019?",
+      "subject": null,
+      "passed": true,
+      "elapsed_seconds": 1.02,
+      "sources_count": 5,
+      "top_source": {
+        "id": "6572b70a6232fc4f504d19957a722819",
+        "text": "Output 8/24/2022 148",
+        "similarity": 0.0482,
+        "distance": 0.9518,
+        "metadata": {
+          "formattedCitation": "[Object Oriented Design And Programming | Notes | Chapter 1_ Introduction To OOPS.pdf (Page 148)]",
+          "file_name": "Chapter 1_ Introduction To OOPS.pdf",
+          "page_num": "148",
+          "subject": "Object Oriented Design And Programming",
+          "semester": "Semester 2",
+          "category": "Notes",
+          "unit": "Chapter 1_ Introduction To OOPS.pdf",
+          "rel_path": "Semester 2/Object Oriented Design And Programming/Notes/Chapter 1_ Introduction To OOPS.pdf"
+        }
+      },
+      "answer": "The provided syllabus and course materials do not contain information to answer this question.",
+      "checks": [
+        "Correctly triggered out-of-scope syllabus refusal"
+      ]
+    }
+  ]
+}
