@@ -102,13 +102,12 @@ public class ChatController {
             5. Strict RAG Grounding & Zero Cross-Subject Contamination:
                - The reference documents in the context are background notes and exam papers from SRM courses. ONLY use them if they are DIRECTLY relevant to what the student is asking.
                - NEVER say "Since you shared these course materials..." or twist the student's question to force-fit unrelated notes.
-               - Answer the student's actual question accurately and directly using your deep knowledge.
+               - Answer the student's actual question accurately and directly.
 
             6. Mandatory Multi-Turn Topic & Context Continuity:
-               - You possess complete conversational memory of the preceding messages in this study thread.
-               - When the student asks follow-up questions (such as "tell me more questions that commonly come in exams", "give harder questions", "explain this further", "give more PYQs", "solve another example", or "what about worst case?"), YOU MUST STAY STRICTLY ON THE SAME ACTIVE TOPIC, ALGORITHM, AND SUBJECT (e.g. Binary Search / Trees / DAA) established in the earlier messages of this thread.
-               - NEVER abruptly jump or drift to an unrelated subject (e.g. jumping from Binary Search in Algorithms to C syntax in PPS) unless the student explicitly asks to switch subjects.
-               - Build directly upon the concepts already discussed in the conversation history.
+                - You possess conversational memory of the preceding messages in this study thread.
+                - When the student asks explicit follow-up questions within the active conversation (such as "tell me more questions on this topic", "give harder questions", "explain this further", "what about worst case?"), stay on the topic established in this thread.
+                - For greetings, pleasantries, or chitchat, respond warmly and briefly without dumping unsolicited exam questions, past topics, or whole lectures.
             """;
 
     public ChatController(RetrievalService retrievalService,
@@ -144,14 +143,14 @@ public class ChatController {
         threadStorageService.addMessage(threadId, userMsgRecord);
 
         // Check if query is conversational greeting/chitchat
-        boolean isGreeting = isConversationalOrGreeting(userMessage) && attachments.isEmpty() && (request.getSubject() == null || request.getSubject().isEmpty());
+        boolean isGreeting = isConversationalOrGreeting(userMessage) && attachments.isEmpty();
 
         String studyMode = request.getStudyMode() != null ? request.getStudyMode().trim().toLowerCase() : "all";
         String effectiveCategory = request.getCategory();
 
         // Prepare primary retrieval request with context enrichment for follow-up inquiries
-        String retrievalQuery = enrichRetrievalQueryWithHistory(userMessage, priorMessages);
-        boolean isPyqQuery = isPyqRelated(userMessage) || isPyqRelated(retrievalQuery);
+        String retrievalQuery = isGreeting ? userMessage : enrichRetrievalQueryWithHistory(userMessage, priorMessages);
+        boolean isPyqQuery = !isGreeting && (isPyqRelated(userMessage) || isPyqRelated(retrievalQuery));
 
         if (isPyqQuery && !"notes".equals(studyMode)) {
             studyMode = "pyqs";
@@ -162,7 +161,7 @@ public class ChatController {
 
         // Auto-detect subject from message/context/thread history if not explicitly chosen
         String effectiveSubject = request.getSubject();
-        if (effectiveSubject == null || effectiveSubject.trim().isEmpty()) {
+        if (!isGreeting && (effectiveSubject == null || effectiveSubject.trim().isEmpty())) {
             effectiveSubject = detectSubjectFromText(userMessage);
             if (effectiveSubject == null) {
                 effectiveSubject = detectSubjectFromText(retrievalQuery);
@@ -229,6 +228,7 @@ public class ChatController {
 
         final String activeStudyMode = studyMode;
         final String finalEffectiveSubject = effectiveSubject;
+        final boolean finalIsGreeting = isGreeting;
         return Mono.zip(primaryRetrieveMono, pyqRetrieveMono)
                 .flatMapMany(tuple -> {
                     List<RetrievedChunk> primaryChunks = filterChunksBySubject(tuple.getT1().getChunks(), finalEffectiveSubject);
@@ -241,7 +241,7 @@ public class ChatController {
                     allSourcesRef.set(combinedSources);
 
                     // Build prompt adapted to question, study mode, and references
-                    String groundedCurrentTurn = buildGroundedPrompt(userMessage, activeStudyMode, primaryChunks, pyqChunks, attachments);
+                    String groundedCurrentTurn = buildGroundedPrompt(userMessage, finalIsGreeting, activeStudyMode, primaryChunks, pyqChunks, attachments);
 
                     // Build multi-turn conversation list for Gemini
                     List<Map<String, Object>> contents = new ArrayList<>();
@@ -328,10 +328,12 @@ public class ChatController {
     private boolean isConversationalOrGreeting(String query) {
         if (query == null) return true;
         String q = query.trim().toLowerCase();
-        if (q.isEmpty()) return false;
-        return q.matches("^(hi|hello|hey|greetings|hola|good\\s+(morning|afternoon|evening)|howdy|sup|yo|namaste)\\b.*")
-                || q.matches("^(who\\s+are\\s+you|what\\s+is\\s+your\\s+name|what\\s+can\\s+you\\s+do|how\\s+can\\s+you\\s+help\\s+me|help\\s+me|tell\\s+me\\s+about\\s+yourself|what\\s+are\\s+you)\\??$")
-                || q.matches("^(thank\\s+you|thanks|thx|cool|ok|okay|got\\s+it|bye|goodbye|see\\s+you|cya)\\b.*");
+        if (q.isEmpty()) return true;
+        q = q.replaceAll("[!?,.]+$", "").trim();
+        return q.matches("^(hi|hello|hey|heyy|heya|hiya|greetings|hola|good\\s+(morning|afternoon|evening|night)|howdy|sup|yo|namaste|vanakkam|wassup)$")
+                || q.matches("^(who\\s+are\\s+you|what\\s+is\\s+your\\s+name|what\\s+can\\s+you\\s+do|how\\s+can\\s+you\\s+help\\s+me|help\\s+me|tell\\s+me\\s+about\\s+yourself|what\\s+are\\s+you)$")
+                || q.matches("^(how\\s+are\\s+you|how\\s+you\\s+doing|how's\\s+it\\s+going|hows\\s+it\\s+going|what's\\s+up|whats\\s+up)$")
+                || q.matches("^(thank\\s+you|thanks|thanks\\s+a\\s+lot|thank\\s+you\\s+so\\s+much|thx|cool|nice|ok|okay|got\\s+it|bye|goodbye|see\\s+you|cya)$");
     }
 
     private static final Map<String, String> SUBJECT_ALIASES = new HashMap<>() {{
@@ -461,17 +463,22 @@ public class ChatController {
 
     private String enrichRetrievalQueryWithHistory(String query, List<MessageRecord> priorMessages) {
         if (query == null || query.trim().isEmpty()) {
-            query = "";
+            return "Course notes and concepts";
+        }
+        if (isConversationalOrGreeting(query)) {
+            return query;
         }
         String cleanQ = query.toLowerCase().trim();
-        boolean isFollowUp = cleanQ.length() < 90 ||
-                cleanQ.contains("this") || cleanQ.contains("that") || cleanQ.contains("exact") ||
-                cleanQ.contains("particular topic") || cleanQ.contains("this topic") ||
-                cleanQ.contains("more question") || cleanQ.contains("common") || cleanQ.contains("commonly") ||
-                cleanQ.contains("previous year") || cleanQ.contains("past year") || cleanQ.contains("pyq") ||
-                cleanQ.contains("solve") || cleanQ.contains("question");
+        boolean isExplicitFollowUp = cleanQ.startsWith("what about") || cleanQ.startsWith("tell me more") ||
+                cleanQ.startsWith("give more") || cleanQ.startsWith("more questions") ||
+                cleanQ.startsWith("explain this") || cleanQ.startsWith("explain that") ||
+                cleanQ.startsWith("what is that") || cleanQ.startsWith("how about") ||
+                cleanQ.equals("next") || cleanQ.equals("continue") || cleanQ.equals("solve it") ||
+                cleanQ.equals("more") || cleanQ.equals("another one") || cleanQ.equals("give another") ||
+                cleanQ.contains("this topic") || cleanQ.contains("particular topic") ||
+                cleanQ.contains("previous topic") || cleanQ.contains("same topic");
 
-        if (isFollowUp && priorMessages != null && !priorMessages.isEmpty()) {
+        if (isExplicitFollowUp && priorMessages != null && !priorMessages.isEmpty()) {
             for (int i = priorMessages.size() - 1; i >= 0; i--) {
                 MessageRecord prev = priorMessages.get(i);
                 if ("user".equalsIgnoreCase(prev.getRole()) && prev.getContent() != null) {
@@ -482,11 +489,23 @@ public class ChatController {
                 }
             }
         }
-        return query.isEmpty() ? "Course notes and concepts" : query;
+        return query;
     }
 
-    private String buildGroundedPrompt(String query, String studyMode, List<RetrievedChunk> primaryChunks, List<RetrievedChunk> pyqChunks, List<AttachmentRecord> attachments) {
+    private String buildGroundedPrompt(String query, boolean isGreeting, String studyMode, List<RetrievedChunk> primaryChunks, List<RetrievedChunk> pyqChunks, List<AttachmentRecord> attachments) {
         StringBuilder sb = new StringBuilder();
+
+        if (isGreeting) {
+            sb.append("=== USER GREETING / CASUAL INTERACTION ===\n");
+            sb.append("The student is saying hello, greeting you, or making casual conversation.\n");
+            sb.append("User message: \"").append(query).append("\"\n\n");
+            sb.append("INSTRUCTIONS FOR GREETING:\n");
+            sb.append("1. Respond directly and warmly as Shiro (2-3 short, punchy sentences max).\n");
+            sb.append("2. Be witty, friendly, and welcoming. Do NOT recite unprompted exam questions, PYQs, flowcharts, math derivations, code, or unsolicited long lecture paragraphs.\n");
+            sb.append("3. Greet them, let them know you're ready to help with their SRM coursework (notes, PYQs, exam prep, or learning concepts from scratch), and ask what subject or topic they want to tackle.\n");
+            sb.append("4. Do NOT introduce yourself with robotic boilerplate (e.g. 'Hello, I am Shiro...'). Just jump in with your natural personality.\n");
+            return sb.toString();
+        }
 
         if (primaryChunks != null && !primaryChunks.isEmpty()) {
             sb.append("=== SRM COURSE REFERENCE MATERIALS ===\n\n");
@@ -550,8 +569,8 @@ public class ChatController {
         }
 
         sb.append("=== MANDATORY CONVERSATION TOPIC & CONTEXT CONTINUITY ===\n");
-        sb.append("1. If this turn is a follow-up inquiry (e.g. asking for 'more questions', 'harder problems', 'common questions', 'solve another one', or 'explain next step'), STAY STRICTLY on the active subject and topic (e.g. Binary Search, Trees, Algorithms) established in the conversation history.\n");
-        sb.append("2. NEVER jump to an unrelated course (e.g. jumping to C programming / PPS when the chat is discussing Binary Search in Algorithms) unless the student explicitly asks for a different subject.\n\n");
+        sb.append("1. If this turn is an explicit follow-up inquiry (e.g. asking for 'more questions', 'harder problems', 'common questions', 'solve another one', or 'explain next step'), stay on the active subject and topic established in the conversation history.\n");
+        sb.append("2. NEVER jump to an unrelated course unless the student explicitly asks for a different subject.\n\n");
 
         sb.append("Respond directly as Shiro with your distinct late-night unfiltered wit, observational humor, and effortless pedagogical clarity. Do not introduce yourself. Format mathematical equations cleanly using KaTeX block math $$ ... $$ and inline $ ... $.");
 

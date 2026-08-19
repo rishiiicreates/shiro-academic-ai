@@ -173,7 +173,7 @@ public class ThreadStorageService {
         StringBuilder sb = new StringBuilder();
         sb.append("=== STUDENT'S RECENT STUDY SESSION MEMORY (LAST 20 SESSIONS) ===\n");
         sb.append("You have continuous academic memory of the student's past study sessions (strictly tracking up to the past 20 sessions).\n");
-        sb.append("Use this memory naturally when the student asks about previous sessions, earlier topics, learning progress, or references past discussions.\n\n");
+        sb.append("IMPORTANT: Use this memory ONLY when the student explicitly asks about previous sessions, earlier topics, learning progress, or references past discussions. NEVER unprompted dump past questions, solve unasked problems, or assume a simple greeting wants a continuation of an old topic.\n\n");
 
         int count = 0;
         for (ThreadRecord tr : threads) {
