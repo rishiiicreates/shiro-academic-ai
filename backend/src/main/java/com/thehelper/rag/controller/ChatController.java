@@ -135,7 +135,9 @@ public class ChatController {
 
         // Fetch existing thread history prior to adding the new message
         Optional<ThreadRecord> existingThreadOpt = threadStorageService.getThread(threadId);
-        List<MessageRecord> priorMessages = existingThreadOpt.map(tr -> new ArrayList<>(tr.getMessages())).orElseGet(ArrayList::new);
+        List<MessageRecord> priorMessages = (request.getMessages() != null && !request.getMessages().isEmpty())
+                ? new ArrayList<>(request.getMessages())
+                : existingThreadOpt.map(tr -> new ArrayList<>(tr.getMessages())).orElseGet(ArrayList::new);
 
         // Save user message to thread with attachments
         MessageRecord userMsgRecord = new MessageRecord(UUID.randomUUID().toString(), "user", userMessage);
@@ -286,8 +288,10 @@ public class ChatController {
                     // Event 1: Emit all combined sources to client immediately
                     ServerSentEvent<String> sourcesEvent = createSseEvent(ChatEvent.sources(threadId, combinedSources));
 
-                    // Inject past 20 sessions memory into system instruction
-                    String sessionMemoryContext = threadStorageService.buildSessionMemoryContext(threadId);
+                    // Inject past sessions memory into system instruction only for legacy server-side storage
+                    String sessionMemoryContext = (request.getMessages() != null && !request.getMessages().isEmpty())
+                            ? ""
+                            : threadStorageService.buildSessionMemoryContext(threadId);
                     String effectiveSystemInstruction = SYSTEM_INSTRUCTION;
                     if (sessionMemoryContext != null && !sessionMemoryContext.trim().isEmpty()) {
                         effectiveSystemInstruction = SYSTEM_INSTRUCTION + "\n\n" + sessionMemoryContext;

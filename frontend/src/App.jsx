@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
-import { fetchMetadata, fetchThreads, fetchThread, deleteThread, streamChat } from './services/api';
+import { fetchMetadata, fetchThreads, fetchThread, deleteThread, saveThreadMessages, streamChat } from './services/api';
 import './App.css';
 
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('the_helper_theme') || 'light');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [metadata, setMetadata] = useState(null);
   
   const [threads, setThreads] = useState([]);
@@ -85,6 +85,9 @@ export default function App() {
     setActiveThread(null);
     setMessages([]);
     setAttachments([]);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleSelectThread = (threadId) => {
@@ -95,6 +98,9 @@ export default function App() {
     setIsStreaming(false);
     setActiveThreadId(threadId);
     setAttachments([]);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleDeleteThread = async (threadId) => {
@@ -150,6 +156,11 @@ export default function App() {
       timestamp: new Date().toISOString()
     };
 
+    const priorHistory = messages.map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content || ''
+    }));
+
     setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
     setIsStreaming(true);
     isStreamingRef.current = true;
@@ -159,6 +170,7 @@ export default function App() {
     await streamChat({
       message: textToSend,
       threadId: currentThreadId,
+      messages: priorHistory,
       semester: undefined,
       subject: targetSubject,
       category: studyMode === 'pyqs' ? 'PYQs' : studyMode === 'notes' ? 'Notes' : undefined,
@@ -195,7 +207,11 @@ export default function App() {
         setIsStreaming(false);
         isStreamingRef.current = false;
         abortControllerRef.current = null;
-        loadThreads();
+        setMessages((finalMsgs) => {
+          saveThreadMessages(currentThreadId, finalMsgs, targetSubject);
+          loadThreads();
+          return finalMsgs;
+        });
       },
       onError: (errMsg) => {
         setIsStreaming(false);
@@ -210,6 +226,8 @@ export default function App() {
               content: (updated[lastIdx].content ? updated[lastIdx].content + '\n\n' : '') + `⚠️ **Error:** ${errMsg}`
             };
           }
+          saveThreadMessages(currentThreadId, updated, targetSubject);
+          loadThreads();
           return updated;
         });
       }
@@ -225,6 +243,14 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {isSidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <Sidebar
         isOpen={isSidebarOpen}
         threads={threads}

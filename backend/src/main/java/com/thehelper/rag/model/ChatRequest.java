@@ -12,6 +12,7 @@ public class ChatRequest {
     private String studyMode; // "notes", "pyqs", "learn_basics", "all"
     private Integer k = 5;
     private List<AttachmentRecord> attachments = new ArrayList<>();
+    private List<MessageRecord> messages = new ArrayList<>();
 
     public ChatRequest() {}
 
@@ -38,4 +39,7 @@ public class ChatRequest {
 
     public List<AttachmentRecord> getAttachments() { return attachments; }
     public void setAttachments(List<AttachmentRecord> attachments) { this.attachments = attachments != null ? attachments : new ArrayList<>(); }
+
+    public List<MessageRecord> getMessages() { return messages; }
+    public void setMessages(List<MessageRecord> messages) { this.messages = messages != null ? messages : new ArrayList<>(); }
 }

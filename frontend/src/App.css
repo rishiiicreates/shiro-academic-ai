@@ -1897,3 +1897,296 @@ body > .error-icon,
   pointer-events: none !important;
 }
 
+/* =========================================================
+   MOBILE RESPONSIVENESS & TOUCH ADAPTATIONS (<768px & <480px)
+   ========================================================= */
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mobile Sidebar Backdrop Overlay */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 45;
+  }
+
+  /* Slide-over Drawer Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px;
+    max-width: 84vw;
+    height: 100%;
+    z-index: 50;
+    box-shadow: var(--ink-shadow-lg);
+    transform: translateX(0);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px;
+    box-shadow: none;
+  }
+
+  /* Top Navigation */
+  .top-nav {
+    padding: 0 12px;
+    height: 50px;
+  }
+
+  .current-thread-title {
+    font-size: 15px;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .active-filter-indicator {
+    font-size: 10.5px;
+    max-width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Messages List Container */
+  .messages-container {
+    top: 50px;
+  }
+
+  .messages-inner {
+    padding: 14px 10px 10px;
+    gap: 14px;
+    max-width: 100%;
+  }
+
+  .messages-bottom-spacer {
+    height: 220px;
+  }
+
+  /* User and Assistant Bubbles */
+  .user-bubble {
+    max-width: 94%;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .assistant-msg-wrapper {
+    max-width: 100%;
+  }
+
+  .assistant-bubble-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .assistant-body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .assistant-body h1 { font-size: 20px; }
+  .assistant-body h2 { font-size: 18px; }
+  .assistant-body h3 { font-size: 16px; }
+
+  /* Empty State / Welcome Screen */
+  .empty-state {
+    padding: 20px 10px 10px;
+  }
+
+  .empty-logo-glow {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+  }
+
+  .empty-title {
+    font-size: 28px;
+  }
+
+  .empty-subtitle {
+    font-size: 13.5px;
+    margin-bottom: 20px;
+    line-height: 1.45;
+  }
+
+  .prompt-suggestions-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .prompt-card {
+    padding: 12px 14px;
+  }
+
+  /* Study Mode Switcher Bar on Mobile */
+  .study-mode-toggle-bar {
+    padding: 0 8px;
+    gap: 6px;
+    margin-bottom: 6px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .study-mode-toggle-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .study-modes-group {
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 2px 4px;
+    flex-shrink: 0;
+  }
+
+  .study-mode-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .study-mode-dog-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .subject-quick-pill {
+    padding: 4px 10px;
+    font-size: 12px;
+    max-width: 130px;
+    flex-shrink: 0;
+  }
+
+  /* Bottom Input Box */
+  .input-box-wrapper {
+    padding: 2px 8px 10px;
+  }
+
+  .input-container {
+    padding: 10px 12px 8px;
+    border-radius: 14px;
+  }
+
+  /* 16px font-size prevents iOS Safari auto-zoom on input focus */
+  .input-textarea {
+    font-size: 16px;
+    min-height: 24px;
+    line-height: 1.4;
+  }
+
+  .input-hint {
+    display: none;
+  }
+
+  .send-btn, .stop-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .attach-file-btn {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  /* Code Blocks, KaTeX Math & Tables on Mobile */
+  pre {
+    padding: 10px;
+    font-size: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+  }
+
+  .katex-display {
+    padding: 8px 4px;
+    margin: 8px 0;
+    font-size: 0.9em;
+    overflow-x: auto;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  th, td {
+    padding: 6px 8px;
+    font-size: 12.5px;
+  }
+
+  /* Mermaid Diagram Cards */
+  .mermaid-diagram-card {
+    padding: 10px 12px;
+    margin: 12px 0;
+    max-width: 100%;
+  }
+
+  .mermaid-svg-viewport svg {
+    max-height: 260px !important;
+  }
+
+  /* Modals */
+  .modal-container {
+    padding: 12px;
+  }
+
+  .subject-modal-card {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 88vh;
+    padding: 16px;
+  }
+
+  .modal-chunk-card {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 88vh;
+    padding: 16px;
+  }
+
+  .image-modal-content img {
+    max-width: 95vw;
+    max-height: 75vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-nav {
+    padding: 0 8px;
+  }
+
+  .current-thread-title {
+    max-width: 120px;
+  }
+
+  .user-bubble {
+    max-width: 96%;
+    font-size: 13.5px;
+    padding: 9px 12px;
+  }
+
+  .study-mode-btn span {
+    font-size: 11px;
+  }
+}
+
+

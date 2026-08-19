@@ -1,4 +1,23 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const THREADS_KEY = 'shiro_user_threads_v2';
+
+function getStoredThreads() {
+  try {
+    const raw = localStorage.getItem(THREADS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to read threads from localStorage:', e);
+    return [];
+  }
+}
+
+function persistThreads(threads) {
+  try {
+    localStorage.setItem(THREADS_KEY, JSON.stringify(threads.slice(0, 30)));
+  } catch (e) {
+    console.error('Failed to save threads to localStorage:', e);
+  }
+}
 
 export async function fetchMetadata() {
   const res = await fetch(`${API_BASE}/metadata`);
@@ -7,33 +26,79 @@ export async function fetchMetadata() {
 }
 
 export async function fetchThreads() {
-  const res = await fetch(`${API_BASE}/threads`);
-  if (!res.ok) throw new Error('Failed to fetch threads');
-  return res.json();
+  return getStoredThreads();
 }
 
 export async function fetchThread(id) {
-  const res = await fetch(`${API_BASE}/threads/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch thread');
-  return res.json();
+  const threads = getStoredThreads();
+  const found = threads.find((t) => t.id === id);
+  if (!found) throw new Error('Thread not found');
+  return found;
 }
 
 export async function createThread(title, semester, subject) {
-  const res = await fetch(`${API_BASE}/threads`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, semester, subject })
+  const newThread = {
+    id: 'thread-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+    title: title || 'New Study Session',
+    semester: semester || null,
+    subject: subject || null,
+    messages: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const threads = getStoredThreads();
+  persistThreads([newThread, ...threads]);
+  return newThread;
+}
+
+export async function saveThreadMessages(threadId, messages, subject = null) {
+  const threads = getStoredThreads();
+  let found = false;
+  const updated = threads.map((t) => {
+    if (t.id === threadId) {
+      found = true;
+      let title = t.title;
+      if (title === 'New Study Session' || title === 'Syllabus Chat' || !title) {
+        const firstUser = messages.find((m) => m.role === 'user');
+        if (firstUser && firstUser.content) {
+          title = firstUser.content.length > 35 ? firstUser.content.substring(0, 35) + '...' : firstUser.content;
+        }
+      }
+      return {
+        ...t,
+        title,
+        subject: subject !== null && subject !== undefined ? subject : t.subject,
+        messages,
+        updatedAt: new Date().toISOString()
+      };
+    }
+    return t;
   });
-  if (!res.ok) throw new Error('Failed to create thread');
-  return res.json();
+
+  if (!found) {
+    let title = 'Study Session';
+    const firstUser = messages.find((m) => m.role === 'user');
+    if (firstUser && firstUser.content) {
+      title = firstUser.content.length > 35 ? firstUser.content.substring(0, 35) + '...' : firstUser.content;
+    }
+    updated.unshift({
+      id: threadId,
+      title,
+      subject,
+      messages,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  persistThreads(updated);
 }
 
 export async function deleteThread(id) {
-  const res = await fetch(`${API_BASE}/threads/${id}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete thread');
-  return res.json();
+  const threads = getStoredThreads();
+  const filtered = threads.filter((t) => t.id !== id);
+  persistThreads(filtered);
+  return { success: true, id };
 }
 
 export async function uploadFile(file) {
@@ -56,6 +121,7 @@ export async function uploadFile(file) {
 export async function streamChat({
   message,
   threadId,
+  messages = [],
   semester,
   subject,
   category,
@@ -78,6 +144,7 @@ export async function streamChat({
       body: JSON.stringify({
         message,
         threadId,
+        messages,
         semester: semester || undefined,
         subject: subject || undefined,
         category: category || undefined,
