@@ -554,18 +554,44 @@ body {
 /* =========================================================
    MESSAGE ITEMS (DOODLE STICKY NOTES & CARDS)
    ========================================================= */
+.message-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-row.user-row {
+  align-items: flex-end;
+}
+
+.message-row.assistant-row {
+  align-items: flex-start;
+}
+
 .user-bubble {
   background-color: var(--user-msg-bg);
   border: 2px solid var(--border-color);
   border-radius: 18px 18px 4px 18px;
   padding: 12px 18px;
-  max-width: 85%;
+  max-width: 82%;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 14.5px;
   line-height: 1.5;
   box-shadow: var(--ink-shadow-sm);
   word-break: break-word;
+}
+
+.assistant-bubble {
+  width: 100%;
+  background-color: var(--assistant-msg-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 16px 20px;
+  box-shadow: var(--ink-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .assistant-header {
@@ -576,18 +602,15 @@ body {
   padding-bottom: 8px;
 }
 
-.assistant-avatar {
-  width: 30px;
-  height: 30px;
+.assistant-header-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .assistant-avatar-dog-img {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
 }
 
@@ -1992,13 +2015,13 @@ body > .error-icon,
   }
 
   .messages-inner {
-    padding: 12px 10px 8px;
+    padding: 12px 10px 140px;
     gap: 12px;
     max-width: 100%;
   }
 
   .messages-bottom-spacer {
-    height: 180px;
+    height: 40px;
   }
 
   /* User and Assistant Bubbles */
@@ -2012,8 +2035,8 @@ body > .error-icon,
     max-width: 100%;
   }
 
-  .assistant-bubble-card {
-    padding: 11px 13px;
+  .assistant-bubble {
+    padding: 12px 14px;
     border-radius: 14px;
   }
 
@@ -2054,6 +2077,10 @@ body > .error-icon,
     grid-template-columns: 1fr;
     gap: 8px;
     width: 100%;
+  }
+
+  .prompt-suggestions-grid .prompt-card:nth-child(n+3) {
+    display: none;
   }
 
   .prompt-card {

@@ -157,15 +157,6 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
 
   return (
     <div className={`message-row ${isUser ? 'user-row' : 'assistant-row'}`}>
-      {/* Avatar */}
-      <div className={`avatar ${isUser ? 'user-avatar' : 'assistant-avatar'}`}>
-        {isUser ? (
-          <span className="avatar-letter">U</span>
-        ) : (
-          <img src="/assets/happy-dog.svg" alt="Shiro Dog Avatar" className="assistant-avatar-dog-img" />
-        )}
-      </div>
-
       {/* Message Bubble */}
       {isUser ? (
         <div className="user-bubble">
@@ -213,7 +204,10 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
         <div className="assistant-bubble">
           {/* Header */}
           <div className="assistant-header">
-            <span className="assistant-name">Shiro</span>
+            <div className="assistant-header-left">
+              <img src="/assets/happy-dog.svg" alt="Shiro Dog" className="assistant-avatar-dog-img" />
+              <span className="assistant-name">Shiro</span>
+            </div>
           </div>
 
           {/* Body with Markdown & KaTeX */}
