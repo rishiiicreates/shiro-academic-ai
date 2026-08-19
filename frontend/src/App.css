@@ -1901,11 +1901,34 @@ body > .error-icon,
    MOBILE RESPONSIVENESS & TOUCH ADAPTATIONS (<768px & <480px)
    ========================================================= */
 
+.sidebar-mobile-close-btn {
+  display: none;
+  background: none;
+  border: 1.5px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 4px;
+  cursor: pointer;
+  box-shadow: 1px 1px 0px var(--border-color);
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+}
+
+.sidebar-mobile-close-btn:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
 .sidebar-backdrop {
   display: none;
 }
 
 @media (max-width: 768px) {
+  .sidebar-mobile-close-btn {
+    display: flex;
+  }
+
   /* Mobile Sidebar Backdrop Overlay */
   .sidebar-backdrop {
     display: block;
@@ -1926,8 +1949,8 @@ body > .error-icon,
     top: 0;
     bottom: 0;
     left: 0;
-    width: 280px;
-    max-width: 84vw;
+    width: 290px;
+    max-width: 86vw;
     height: 100%;
     z-index: 50;
     box-shadow: var(--ink-shadow-lg);
@@ -1937,7 +1960,7 @@ body > .error-icon,
 
   .sidebar.collapsed {
     transform: translateX(-100%);
-    width: 280px;
+    width: 290px;
     box-shadow: none;
   }
 
@@ -1949,15 +1972,15 @@ body > .error-icon,
 
   .current-thread-title {
     font-size: 15px;
-    max-width: 150px;
+    max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .active-filter-indicator {
-    font-size: 10.5px;
-    max-width: 110px;
+    font-size: 10px;
+    max-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1969,20 +1992,20 @@ body > .error-icon,
   }
 
   .messages-inner {
-    padding: 14px 10px 10px;
-    gap: 14px;
+    padding: 12px 10px 8px;
+    gap: 12px;
     max-width: 100%;
   }
 
   .messages-bottom-spacer {
-    height: 220px;
+    height: 180px;
   }
 
   /* User and Assistant Bubbles */
   .user-bubble {
     max-width: 94%;
-    padding: 10px 14px;
-    font-size: 14px;
+    padding: 9px 13px;
+    font-size: 13.5px;
   }
 
   .assistant-msg-wrapper {
@@ -1990,49 +2013,62 @@ body > .error-icon,
   }
 
   .assistant-bubble-card {
-    padding: 12px 14px;
+    padding: 11px 13px;
     border-radius: 14px;
   }
 
   .assistant-body {
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 13.5px;
+    line-height: 1.55;
   }
 
-  .assistant-body h1 { font-size: 20px; }
-  .assistant-body h2 { font-size: 18px; }
-  .assistant-body h3 { font-size: 16px; }
+  .assistant-body h1 { font-size: 19px; }
+  .assistant-body h2 { font-size: 17px; }
+  .assistant-body h3 { font-size: 15px; }
 
   /* Empty State / Welcome Screen */
   .empty-state {
-    padding: 20px 10px 10px;
+    padding: 16px 8px 8px;
   }
 
   .empty-logo-glow {
-    width: 68px;
-    height: 68px;
-    border-radius: 18px;
-    margin-bottom: 12px;
+    width: 62px;
+    height: 62px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    padding: 6px;
   }
 
   .empty-title {
-    font-size: 28px;
+    font-size: 26px;
+    margin-bottom: 4px;
   }
 
   .empty-subtitle {
-    font-size: 13.5px;
-    margin-bottom: 20px;
-    line-height: 1.45;
+    font-size: 13px;
+    margin-bottom: 16px;
+    line-height: 1.4;
   }
 
   .prompt-suggestions-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
   }
 
   .prompt-card {
-    padding: 12px 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    gap: 4px;
+  }
+
+  .prompt-card-tag {
+    font-size: 11px;
+  }
+
+  .prompt-card-text {
+    font-size: 12px;
+    line-height: 1.35;
   }
 
   /* Study Mode Switcher Bar on Mobile */
@@ -2044,6 +2080,7 @@ body > .error-icon,
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    justify-content: flex-start;
   }
 
   .study-mode-toggle-bar::-webkit-scrollbar {
@@ -2059,7 +2096,7 @@ body > .error-icon,
 
   .study-mode-btn {
     padding: 4px 8px;
-    font-size: 12px;
+    font-size: 11.5px;
     gap: 4px;
   }
 
@@ -2069,27 +2106,33 @@ body > .error-icon,
   }
 
   .subject-quick-pill {
-    padding: 4px 10px;
-    font-size: 12px;
+    padding: 4px 9px;
+    font-size: 11.5px;
     max-width: 130px;
     flex-shrink: 0;
   }
 
   /* Bottom Input Box */
+  .input-section {
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 6px));
+  }
+
   .input-box-wrapper {
-    padding: 2px 8px 10px;
+    padding: 0 8px 6px;
+    background-color: var(--bg-app);
   }
 
   .input-container {
-    padding: 10px 12px 8px;
+    padding: 8px 10px 6px;
     border-radius: 14px;
+    gap: 6px;
   }
 
   /* 16px font-size prevents iOS Safari auto-zoom on input focus */
   .input-textarea {
     font-size: 16px;
     min-height: 24px;
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
   .input-hint {
@@ -2103,21 +2146,21 @@ body > .error-icon,
 
   .attach-file-btn {
     padding: 3px 8px;
-    font-size: 12px;
+    font-size: 11.5px;
   }
 
   /* Code Blocks, KaTeX Math & Tables on Mobile */
   pre {
     padding: 10px;
-    font-size: 12px;
+    font-size: 11.5px;
     margin: 8px 0;
     border-radius: 8px;
   }
 
   .katex-display {
-    padding: 8px 4px;
-    margin: 8px 0;
-    font-size: 0.9em;
+    padding: 6px 4px;
+    margin: 6px 0;
+    font-size: 0.88em;
     overflow-x: auto;
   }
 
@@ -2129,42 +2172,42 @@ body > .error-icon,
   }
 
   th, td {
-    padding: 6px 8px;
-    font-size: 12.5px;
+    padding: 5px 8px;
+    font-size: 12px;
   }
 
   /* Mermaid Diagram Cards */
   .mermaid-diagram-card {
-    padding: 10px 12px;
-    margin: 12px 0;
+    padding: 8px 10px;
+    margin: 10px 0;
     max-width: 100%;
   }
 
   .mermaid-svg-viewport svg {
-    max-height: 260px !important;
+    max-height: 240px !important;
   }
 
   /* Modals */
   .modal-container {
-    padding: 12px;
+    padding: 10px;
   }
 
   .subject-modal-card {
-    width: 95vw;
-    max-width: 95vw;
+    width: 96vw;
+    max-width: 96vw;
     max-height: 88vh;
-    padding: 16px;
+    padding: 14px;
   }
 
   .modal-chunk-card {
-    width: 95vw;
-    max-width: 95vw;
+    width: 96vw;
+    max-width: 96vw;
     max-height: 88vh;
-    padding: 16px;
+    padding: 14px;
   }
 
   .image-modal-content img {
-    max-width: 95vw;
+    max-width: 96vw;
     max-height: 75vh;
   }
 }
@@ -2175,17 +2218,18 @@ body > .error-icon,
   }
 
   .current-thread-title {
-    max-width: 120px;
+    max-width: 110px;
+    font-size: 14px;
   }
 
   .user-bubble {
     max-width: 96%;
-    font-size: 13.5px;
-    padding: 9px 12px;
+    font-size: 13px;
+    padding: 8px 11px;
   }
 
   .study-mode-btn span {
-    font-size: 11px;
+    font-size: 10.5px;
   }
 }
 

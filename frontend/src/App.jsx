@@ -253,6 +253,7 @@ export default function App() {
 
       <Sidebar
         isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
         threads={threads}
         activeThreadId={activeThreadId}
         onSelectThread={handleSelectThread}

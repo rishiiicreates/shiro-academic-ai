@@ -118,7 +118,7 @@ export default function ChatArea({
               />
             ))
           )}
-          <div className="messages-bottom-spacer" />
+          {messages.length > 0 && <div className="messages-bottom-spacer" />}
           <div ref={messagesEndRef} />
         </div>
       </div>

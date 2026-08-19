@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus, Trash2, Sun, Moon, Database } from 'lucide-react';
+import { Plus, Trash2, Sun, Moon, Database, X } from 'lucide-react';
 
 export default function Sidebar({
   isOpen,
+  onClose,
   threads,
   activeThreadId,
   onSelectThread,
@@ -28,6 +29,9 @@ export default function Sidebar({
             </div>
           </div>
         </div>
+        <button className="sidebar-mobile-close-btn" onClick={onClose} title="Close sidebar">
+          <X size={18} />
+        </button>
       </div>
 
       <button className="new-chat-btn" onClick={onNewChat}>
