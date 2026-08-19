@@ -101,6 +101,28 @@ export async function deleteThread(id) {
   return { success: true, id };
 }
 
+export function buildLocalUserSessions(currentThreadId) {
+  const threads = getStoredThreads();
+  if (!threads || threads.length === 0) return [];
+
+  return threads
+    .filter((t) => t.id !== currentThreadId && t.messages && t.messages.length > 0)
+    .slice(0, 10)
+    .map((t) => {
+      const questions = t.messages
+        .filter((m) => m.role === 'user' && m.content)
+        .map((m) => (m.content.length > 60 ? m.content.substring(0, 60) + '...' : m.content))
+        .slice(0, 3);
+
+      return {
+        id: t.id,
+        title: t.title || 'Study Session',
+        subject: t.subject || null,
+        questions
+      };
+    });
+}
+
 export async function uploadFile(file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -135,6 +157,7 @@ export async function streamChat({
   onError
 }) {
   try {
+    const userSessions = buildLocalUserSessions(threadId);
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
       headers: {
@@ -145,6 +168,7 @@ export async function streamChat({
         message,
         threadId,
         messages,
+        userSessions,
         semester: semester || undefined,
         subject: subject || undefined,
         category: category || undefined,

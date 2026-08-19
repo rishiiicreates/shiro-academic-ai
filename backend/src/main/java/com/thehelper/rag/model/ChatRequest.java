@@ -13,6 +13,7 @@ public class ChatRequest {
     private Integer k = 5;
     private List<AttachmentRecord> attachments = new ArrayList<>();
     private List<MessageRecord> messages = new ArrayList<>();
+    private List<SessionSummary> userSessions = new ArrayList<>();
 
     public ChatRequest() {}
 
@@ -42,4 +43,7 @@ public class ChatRequest {
 
     public List<MessageRecord> getMessages() { return messages; }
     public void setMessages(List<MessageRecord> messages) { this.messages = messages != null ? messages : new ArrayList<>(); }
+
+    public List<SessionSummary> getUserSessions() { return userSessions; }
+    public void setUserSessions(List<SessionSummary> userSessions) { this.userSessions = userSessions != null ? userSessions : new ArrayList<>(); }
 }

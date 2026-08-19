@@ -133,16 +133,10 @@ public class ChatController {
             return Flux.just(createSseEvent(ChatEvent.error(threadId, "Message or attachment cannot be empty.")));
         }
 
-        // Fetch existing thread history prior to adding the new message
-        Optional<ThreadRecord> existingThreadOpt = threadStorageService.getThread(threadId);
+        // Fetch prior conversation history strictly from client (isolated & private)
         List<MessageRecord> priorMessages = (request.getMessages() != null && !request.getMessages().isEmpty())
                 ? new ArrayList<>(request.getMessages())
-                : existingThreadOpt.map(tr -> new ArrayList<>(tr.getMessages())).orElseGet(ArrayList::new);
-
-        // Save user message to thread with attachments
-        MessageRecord userMsgRecord = new MessageRecord(UUID.randomUUID().toString(), "user", userMessage);
-        userMsgRecord.setAttachments(attachments);
-        threadStorageService.addMessage(threadId, userMsgRecord);
+                : new ArrayList<>();
 
         // Check if query is conversational greeting/chitchat
         boolean isGreeting = isConversationalOrGreeting(userMessage) && attachments.isEmpty();
@@ -168,13 +162,6 @@ public class ChatController {
             if (effectiveSubject == null) {
                 effectiveSubject = detectSubjectFromText(retrievalQuery);
             }
-            // Inherit from active thread record
-            if (effectiveSubject == null && existingThreadOpt.isPresent()) {
-                String threadSubj = existingThreadOpt.get().getSubject();
-                if (threadSubj != null && !threadSubj.trim().isEmpty()) {
-                    effectiveSubject = threadSubj.trim();
-                }
-            }
             // Inherit from prior turns / sources in this thread
             if (effectiveSubject == null && priorMessages != null && !priorMessages.isEmpty()) {
                 for (int i = priorMessages.size() - 1; i >= 0; i--) {
@@ -197,11 +184,6 @@ public class ChatController {
                     }
                 }
             }
-        }
-
-        // Lock subject on thread record if determined
-        if (effectiveSubject != null && !effectiveSubject.trim().isEmpty() && existingThreadOpt.isPresent()) {
-            existingThreadOpt.get().setSubject(effectiveSubject);
         }
 
         RetrieveRequest primaryRetrieveRequest = new RetrieveRequest(
@@ -288,16 +270,14 @@ public class ChatController {
                     // Event 1: Emit all combined sources to client immediately
                     ServerSentEvent<String> sourcesEvent = createSseEvent(ChatEvent.sources(threadId, combinedSources));
 
-                    // Inject past sessions memory into system instruction only for legacy server-side storage
-                    String sessionMemoryContext = (request.getMessages() != null && !request.getMessages().isEmpty())
-                            ? ""
-                            : threadStorageService.buildSessionMemoryContext(threadId);
+                    // Inject user's own past sessions memory (strictly from request.getUserSessions() - isolated to this student)
+                    String sessionMemoryContext = buildUserSessionMemoryContext(request.getUserSessions());
                     String effectiveSystemInstruction = SYSTEM_INSTRUCTION;
                     if (sessionMemoryContext != null && !sessionMemoryContext.trim().isEmpty()) {
                         effectiveSystemInstruction = SYSTEM_INSTRUCTION + "\n\n" + sessionMemoryContext;
                     }
 
-                    // Stream tokens from Gemini with full conversation history & 20-session memory
+                    // Stream tokens from Gemini with full conversation history & student's private memory
                     Flux<ServerSentEvent<String>> tokenEvents = geminiStreamService.streamGenerateContent(effectiveSystemInstruction, contents)
                             .map(token -> {
                                 fullAssistantAnswer.append(token);
@@ -308,16 +288,8 @@ public class ChatController {
                                 return Flux.just(createSseEvent(ChatEvent.error(threadId, "Streaming error: " + err.getMessage())));
                             });
 
-                    // Event Last: Emit completion event and persist assistant message
+                    // Event Last: Emit completion event
                     Mono<ServerSentEvent<String>> doneEvent = Mono.fromCallable(() -> {
-                        MessageRecord assistantMsgRecord = new MessageRecord(
-                                UUID.randomUUID().toString(),
-                                "assistant",
-                                fullAssistantAnswer.toString()
-                        );
-                        assistantMsgRecord.setSources(allSourcesRef.get());
-                        threadStorageService.addMessage(threadId, assistantMsgRecord);
-
                         return createSseEvent(ChatEvent.done(threadId));
                     });
 
@@ -579,6 +551,32 @@ public class ChatController {
         sb.append("Respond directly as Shiro with your distinct late-night unfiltered wit, observational humor, and effortless pedagogical clarity. Do not introduce yourself. Format mathematical equations cleanly using KaTeX block math $$ ... $$ and inline $ ... $.");
 
         return sb.toString();
+    }
+
+    private String buildUserSessionMemoryContext(List<SessionSummary> sessions) {
+        if (sessions == null || sessions.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== THIS STUDENT'S PREVIOUS STUDY SESSIONS (PRIVATE TO THIS STUDENT) ===\n");
+        sb.append("You have continuous academic memory of this specific student's previous study sessions.\n");
+        sb.append("IMPORTANT: Use this memory ONLY when the student explicitly asks about previous sessions, earlier topics, learning progress, or references past discussions. NEVER unprompted dump past questions, solve unasked problems, or assume a simple greeting wants a continuation of an old topic.\n\n");
+
+        int count = 0;
+        for (SessionSummary s : sessions) {
+            if (s == null) continue;
+            count++;
+            sb.append(String.format("• Session %d: \"%s\"", count, s.getTitle() != null ? s.getTitle() : "Study Session"));
+            if (s.getSubject() != null && !s.getSubject().trim().isEmpty()) {
+                sb.append(" | Subject: ").append(s.getSubject().trim());
+            }
+            if (s.getQuestions() != null && !s.getQuestions().isEmpty()) {
+                sb.append(" | Questions asked: ").append(String.join(", ", s.getQuestions()));
+            }
+            sb.append("\n");
+        }
+        sb.append("========================================================================\n");
+        return count > 0 ? sb.toString() : "";
     }
 
     private ServerSentEvent<String> createSseEvent(ChatEvent event) {
