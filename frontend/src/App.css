@@ -401,6 +401,12 @@ body {
   gap: 8px;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .current-thread-title {
   font-family: var(--font-doodle);
   font-weight: 700;
