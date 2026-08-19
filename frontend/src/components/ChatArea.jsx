@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, Plus, Sun, Moon } from 'lucide-react';
 import MessageItem from './MessageItem';
 import InputBox from './InputBox';
 import SubjectSelectorModal from './SubjectSelectorModal';
@@ -37,6 +37,9 @@ export default function ChatArea({
   onSend,
   onStop,
   onSelectPrompt,
+  onNewChat,
+  theme,
+  onToggleTheme,
   subject,
   setSubject,
   studyMode,
@@ -63,13 +66,19 @@ export default function ChatArea({
       <header className="top-nav">
         <div className="nav-left">
           <button
-            className="toggle-sidebar-btn"
+            className="toggle-sidebar-btn desktop-only"
             onClick={onToggleSidebar}
             title={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
           >
             <PanelLeft size={16} />
           </button>
-          <div className="thread-header-info">
+
+          <div className="mobile-brand-wrapper mobile-only" onClick={onNewChat} title="Start New Chat">
+            <img src="/assets/smiling-dog.svg" alt="Shiro" className="mobile-brand-avatar" />
+            <span className="mobile-brand-title">Shiro</span>
+          </div>
+
+          <div className="thread-header-info desktop-only">
             <div className="current-thread-title">
               {thread?.title || 'Shiro'}
             </div>
@@ -79,6 +88,27 @@ export default function ChatArea({
               </div>
             )}
           </div>
+        </div>
+
+        <div className="nav-right">
+          {/* New Chat Button on Mobile */}
+          <button
+            className="nav-action-btn mobile-only"
+            onClick={onNewChat}
+            title="Start new study session"
+          >
+            <Plus size={15} color="var(--accent-warm)" />
+            <span>New</span>
+          </button>
+
+          {/* Theme Switcher on Mobile */}
+          <button
+            className="nav-theme-btn mobile-only"
+            onClick={onToggleTheme}
+            title={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === 'dark' ? <Sun size={15} color="#f59e0b" /> : <Moon size={15} color="#64748b" />}
+          </button>
         </div>
       </header>
 

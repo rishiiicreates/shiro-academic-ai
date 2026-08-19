@@ -273,6 +273,9 @@ export default function App() {
         onSend={(text) => handleSend(text)}
         onStop={handleStop}
         onSelectPrompt={handleSelectPrompt}
+        onNewChat={handleNewChat}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
         subject={subject}
         setSubject={setSubject}
         studyMode={studyMode}
