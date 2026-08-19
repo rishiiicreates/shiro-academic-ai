@@ -11,11 +11,11 @@ from pydantic import BaseModel, Field
 import chromadb
 from fastembed import TextEmbedding
 
-EMBEDDINGS_DIR = os.getenv('EMBEDDINGS_DIR', '/Users/rishii/the-helper-vector-embeddings')
+DATA_DIR = os.getenv('DATA_DIR', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data'))
+EMBEDDINGS_DIR = os.getenv('EMBEDDINGS_DIR', DATA_DIR)
 CHROMA_DIR = os.path.join(EMBEDDINGS_DIR, 'chroma_db')
 DB_PATH = os.path.join(EMBEDDINGS_DIR, 'the_helper_rag.db')
 MANIFEST_PATH = os.path.join(EMBEDDINGS_DIR, 'manifest.json')
-DATA_DIR = os.getenv('DATA_DIR', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data'))
 IMAGES_DIR = os.getenv('IMAGES_DIR', os.path.join(DATA_DIR, 'images'))
 IMAGES_MANIFEST_PATH = os.getenv('IMAGES_MANIFEST_PATH', os.path.join(DATA_DIR, 'images_manifest.json'))
 
