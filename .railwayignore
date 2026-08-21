@@ -4,3 +4,8 @@ frontend
 eval
 .DS_Store
 data/images
+data/chroma_db
+data/the_helper_rag.db
+data/the_helper_rag.db-shm
+data/the_helper_rag.db-wal
+data/corpus.db
