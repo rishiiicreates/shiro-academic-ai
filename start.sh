@@ -26,7 +26,7 @@ done
 
 # 2. Start Spring Boot Reactive WebFlux Backend (Port 8080)
 echo "[2/3] Starting Spring Boot WebFlux Backend on :8080..."
-java -jar backend/target/the-helper-rag-backend-1.0.0.jar > /tmp/shiro_backend.log 2>&1 &
+java -jar backend/target/chiroshiro-backend-1.0.0.jar > /tmp/shiro_backend.log 2>&1 &
 BACKEND_PID=$!
 echo "   Backend PID: $BACKEND_PID"
 

@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: the-helper-rag-backend
+    name: chiroshiro-backend
   main:
     web-application-type: reactive
 

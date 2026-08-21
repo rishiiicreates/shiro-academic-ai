@@ -6,7 +6,7 @@ WORKDIR /app
 COPY sidecar/requirements.txt /app/sidecar/requirements.txt
 RUN pip install --no-cache-dir -r /app/sidecar/requirements.txt
 COPY sidecar/ /app/sidecar/
-COPY backend/target/the-helper-rag-backend-1.0.0.jar /app/backend.jar
+COPY backend/target/chiroshiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh

@@ -1471,13 +1471,6 @@ tr:nth-child(even) td {
 /* =========================================================
    USER ATTACHMENTS & IMAGE SIZING FIX (BUG RESOLUTION)
    ========================================================= */
-.user-attachments-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
 .user-attachment-image-card {
   position: relative;
   width: 150px;
@@ -1524,21 +1517,6 @@ tr:nth-child(even) td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.user-attachment-doc-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--bg-surface);
-  border: 1.5px solid var(--border-color);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-family: var(--font-doodle);
-  font-weight: 700;
-  color: var(--text-primary);
-  box-shadow: 1.5px 1.5px 0px var(--border-color);
 }
 
 /* Strict image constraints across all message bubbles */
@@ -1624,275 +1602,6 @@ tr:nth-child(even) td {
   font-weight: 700;
   text-decoration: none;
   font-size: 12px;
-}
-
-/* =========================================================
-   SOURCES & KNOWLEDGE LOCATIONS MODAL (RICH INSPECTOR)
-   ========================================================= */
-.citations-modal-content {
-  background-color: var(--bg-surface);
-  border: 2.5px solid var(--border-color);
-  border-radius: var(--radius-card);
-  width: 92vw;
-  max-width: 760px;
-  height: 82vh;
-  max-height: 700px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--ink-shadow-lg);
-  overflow: hidden;
-  animation: modalScaleUp 0.16s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sources-tabs-bar {
-  display: flex;
-  gap: 6px;
-  padding: 8px 16px;
-  background-color: var(--bg-subtle);
-  border-bottom: 2px solid var(--border-color);
-  overflow-x: auto;
-  flex-shrink: 0;
-}
-
-.source-tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--bg-surface);
-  border: 1.5px solid var(--border-color);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 1px 1px 0px var(--border-color);
-  transition: all 0.12s ease;
-}
-
-.source-tab-btn:hover {
-  background-color: var(--hl-yellow);
-  color: #1c1917;
-}
-
-.source-tab-btn.active {
-  background-color: var(--hl-yellow);
-  color: #1c1917;
-  font-weight: 700;
-  box-shadow: 2px 2px 0px var(--border-color);
-  transform: translate(-1px, -1px);
-}
-
-.source-tab-btn.active.pyq {
-  background-color: var(--hl-sky);
-}
-
-.source-tab-index {
-  font-family: var(--font-doodle);
-  font-weight: 700;
-}
-
-.source-tab-score {
-  font-size: 10.5px;
-  background-color: var(--bg-app);
-  padding: 1px 4px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color);
-}
-
-.citations-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Breadcrumb Location Card */
-.location-breadcrumb-card {
-  background-color: var(--bg-app);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  padding: 12px 16px;
-  box-shadow: var(--ink-shadow-sm);
-}
-
-.breadcrumb-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-doodle);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.breadcrumb-path-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.bc-item {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-.bc-item.vault-root {
-  background-color: var(--hl-purple);
-  font-weight: 700;
-}
-
-.bc-item.sem-badge {
-  background-color: var(--hl-yellow);
-}
-
-.bc-item.category-badge.pyq {
-  background-color: var(--hl-sky);
-}
-
-.bc-item.file-badge {
-  background-color: var(--hl-mint);
-  font-weight: 700;
-}
-
-.bc-sep {
-  color: var(--text-muted);
-}
-
-/* Local Disk Path Box */
-.local-path-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  background-color: var(--bg-surface);
-  border: 1.5px solid var(--border-color);
-  border-radius: 6px;
-  padding: 6px 10px;
-}
-
-.local-path-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow: hidden;
-}
-
-.local-path-text code {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-primary);
-  background: none;
-  border: none;
-  padding: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.copy-path-btn, .copy-excerpt-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background-color: var(--bg-app);
-  border: 1.5px solid var(--border-color);
-  color: var(--text-primary);
-  font-family: var(--font-doodle);
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 1px 1px 0px var(--border-color);
-  flex-shrink: 0;
-  transition: all 0.12s ease;
-}
-
-.copy-path-btn:hover, .copy-excerpt-btn:hover {
-  background-color: var(--hl-yellow);
-  transform: translate(-1px, -1px);
-}
-
-/* Citation Meta Grid */
-.citation-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-}
-
-.meta-card {
-  background-color: var(--bg-app);
-  border: 1.5px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.meta-card-label {
-  font-family: var(--font-doodle);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.meta-card-value {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-/* Citation Excerpt Section */
-.citation-excerpt-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.citation-excerpt-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.excerpt-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-doodle);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.modal-chunk-text {
-  background-color: var(--bg-app);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 14px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--text-primary);
-  max-height: 240px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Footer Bar in Assistant Message */
@@ -2083,10 +1792,6 @@ body > .error-icon,
     font-size: 13.5px;
   }
 
-  .assistant-msg-wrapper {
-    max-width: 100%;
-  }
-
   .assistant-bubble {
     padding: 12px 14px;
     border-radius: 14px;
@@ -2264,25 +1969,6 @@ body > .error-icon,
 
   .mermaid-svg-viewport svg {
     max-height: 240px !important;
-  }
-
-  /* Modals */
-  .modal-container {
-    padding: 10px;
-  }
-
-  .subject-modal-card {
-    width: 96vw;
-    max-width: 96vw;
-    max-height: 88vh;
-    padding: 14px;
-  }
-
-  .modal-chunk-card {
-    width: 96vw;
-    max-width: 96vw;
-    max-height: 88vh;
-    padding: 14px;
   }
 
   .image-modal-content img {
