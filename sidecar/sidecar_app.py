@@ -146,7 +146,7 @@ def get_collection():
     if _collection is None:
         print(f"[Sidecar] Connecting to ChromaDB at {CHROMA_DIR}...")
         _chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
-        _collection = _chroma_client.get_collection("the_helper_docs")
+        _collection = _chroma_client.get_or_create_collection("the_helper_docs")
         print(f"[Sidecar] Loaded collection 'the_helper_docs' with {_collection.count()} chunks.")
     return _collection
 
