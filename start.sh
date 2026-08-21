@@ -10,9 +10,21 @@ echo "=========================================================="
 
 # 1. Start Python Retrieval Sidecar (Port 8001)
 echo "[1/3] Starting Python FastEmbed ONNX Retrieval Sidecar on :8001..."
-/tmp/dl_venv/bin/python sidecar/sidecar_app.py > /tmp/shiro_sidecar.log 2>&1 &
+
+# Auto-detect Python binary
+if [ -f "sidecar/.venv/bin/python" ]; then
+  PYTHON_CMD="sidecar/.venv/bin/python"
+elif [ -f "/tmp/dl_venv/bin/python" ]; then
+  PYTHON_CMD="/tmp/dl_venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_CMD="python3"
+else
+  PYTHON_CMD="python"
+fi
+
+$PYTHON_CMD sidecar/sidecar_app.py > /tmp/shiro_sidecar.log 2>&1 &
 SIDECAR_PID=$!
-echo "   Sidecar PID: $SIDECAR_PID"
+echo "   Sidecar PID: $SIDECAR_PID (using $PYTHON_CMD)"
 
 # Wait for sidecar to become healthy
 echo "   Waiting for sidecar health check..."

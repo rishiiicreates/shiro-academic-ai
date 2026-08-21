@@ -23,6 +23,35 @@ MIN_SIMILARITY_THRESHOLD = 0.50
 
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
+def ensure_data_extracted():
+    # 1. Unpack SQLite DB if needed
+    if not os.path.exists(DB_PATH) and os.path.exists(DB_PATH + '.gz'):
+        print(f"[Sidecar] Decompressing {DB_PATH}.gz...")
+        import gzip, shutil
+        with gzip.open(DB_PATH + '.gz', 'rb') as f_in:
+            with open(DB_PATH, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        print("[Sidecar] Decompressed SQLite database.")
+        
+    # 2. Reassemble and unpack split ChromaDB archives if needed
+    part_a = os.path.join(EMBEDDINGS_DIR, 'chroma_db.tar.gz.part_aa')
+    if not os.path.exists(CHROMA_DIR) and os.path.exists(part_a):
+        print("[Sidecar] Reassembling and unpacking ChromaDB from split parts...")
+        import glob, tarfile
+        part_files = sorted(glob.glob(os.path.join(EMBEDDINGS_DIR, 'chroma_db.tar.gz.part_*')))
+        combined_tar = os.path.join(EMBEDDINGS_DIR, 'chroma_db_temp.tar.gz')
+        with open(combined_tar, 'wb') as outfile:
+            for p in part_files:
+                with open(p, 'rb') as infile:
+                    outfile.write(infile.read())
+        with tarfile.open(combined_tar, 'r:gz') as tar:
+            tar.extractall(path=EMBEDDINGS_DIR)
+        if os.path.exists(combined_tar):
+            os.remove(combined_tar)
+        print(f"[Sidecar] Unpacked ChromaDB to {CHROMA_DIR}.")
+
+ensure_data_extracted()
+
 app = FastAPI(
     title="Shiro RAG Retrieval Sidecar",
     description="Fastembed ONNX vector + SQLite Topic-Wise PYQ & FTS5 hybrid retrieval sidecar for SRM syllabus",
