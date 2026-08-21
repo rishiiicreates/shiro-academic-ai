@@ -1,4 +1,4 @@
-# 🎓 SHIRO (The Helper) — Academic Syllabus RAG System
+# 🎓 ChiroShiro — Academic Syllabus RAG System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4%20WebFlux-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -7,7 +7,7 @@
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-95k%2B%20Chunks-orange.svg)](https://www.trychroma.com)
 [![Gemini](https://img.shields.io/badge/LLM-Gemini%20Flash%20Lite-4285F4.svg)](https://ai.google.dev)
 
-**SHIRO** is a university coursework and syllabus question-answering system. It couples **CPU-accelerated local ONNX dense retrieval**, **high-concurrency Spring Boot WebFlux reactive orchestration**, and a **Claude-style React interface** to deliver accurate, grounded academic explanations, diagrams, and Previous Year Questions (PYQs) without hallucinations.
+**ChiroShiro** (Shiro) is a university coursework and syllabus question-answering assistant. It couples **CPU-accelerated local ONNX dense retrieval**, **high-concurrency Spring Boot WebFlux reactive orchestration**, and an **interactive, blackboard-themed React interface** to deliver accurate, grounded academic explanations, KaTeX mathematics, Mermaid diagrams, and Previous Year Exam Questions (PYQs) with zero hallucinations.
 
 ---
 
@@ -83,19 +83,18 @@
 .
 ├── backend/                       # Spring Boot 3.4 WebFlux Orchestration Service
 │   ├── pom.xml
-│   ├── src/main/java/com/thehelper/rag/
-│   │   ├── TheHelperRagApplication.java
+│   ├── src/main/java/             # Reactive controllers, services & config
 │   │   ├── config/                # AppProperties, WebClientConfig, CorsConfig
-│   │   ├── controller/            # ChatController, ThreadController, MetadataController, UploadController
-│   │   ├── model/                 # ChatRequest, ChatEvent, RetrievedChunk, ThreadRecord, etc.
-│   │   └── service/               # RetrievalService, GeminiStreamService, ThreadStorageService, FileUploadService
+│   │   ├── controller/            # ChatController, MetadataController, UploadController
+│   │   ├── model/                 # ChatRequest, ChatEvent, RetrievedChunk, etc.
+│   │   └── service/               # RetrievalService, GeminiStreamService, FileUploadService
 │   └── src/main/resources/
 │       └── application.yml        # Reactive Netty & Service Configuration
 ├── sidecar/                       # Python FastAPI Vector & PYQ Retrieval Engine
 │   ├── sidecar_app.py             # ChromaDB + FastEmbed ONNX + SQLite FTS5 (:8001)
 │   ├── extract_images.py          # Slide and textbook diagram extractor
 │   └── requirements.txt           # fastapi, uvicorn, chromadb, fastembed, pydantic
-├── frontend/                      # React 18 (Vite) Claude-Style UI
+├── frontend/                      # React 18 (Vite) Single Page Application
 │   ├── package.json
 │   ├── vite.config.js
 │   └── src/
@@ -115,7 +114,7 @@
 │           └── api.js             # SSE stream reader and REST endpoints
 ├── data/                          # Data, Embeddings & Database Artifacts
 │   ├── chroma_db/                 # Chroma vector database (95k+ chunks)
-│   ├── the_helper_rag.db          # SQLite relational corpus & PYQ database
+│   ├── *.db                       # SQLite relational corpus & PYQ database
 │   ├── images/                    # Extracted diagrams and visual assets
 │   └── manifest.json              # Subject, unit, and document metadata index
 ├── eval/                          # Grounding & Quality Evaluation Suite
@@ -136,7 +135,7 @@
 ### 1. Python Retrieval Sidecar (`:8001`)
 - **FastEmbed ONNX**: Uses `BAAI/bge-small-en-v1.5` to convert user queries into 384-dimensional dense vectors on CPU in milliseconds.
 - **ChromaDB Vector Store**: Searches through pre-chunked course materials partitioned by semester and subject.
-- **SQLite Hybrid Search**: Evaluates FTS5 tables and exact matches in `the_helper_rag.db` to extract corresponding Previous Year Exam Questions (PYQs).
+- **SQLite Hybrid Search**: Evaluates FTS5 tables and exact matches in the relational database to extract corresponding Previous Year Exam Questions (PYQs).
 - **Image Manifest Integration**: Resolves figure references and provides direct image URLs for lecture slides.
 
 ### 2. Spring Boot Reactive Backend (`:8080`)
