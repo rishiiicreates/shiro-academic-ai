@@ -31,7 +31,7 @@ public class MetadataController {
                 "status", "ok",
                 "service", "chiroshiro-backend",
                 "framework", "Spring WebFlux Reactive",
-                "geminiModel", "gemini-3.1-flash-lite"
+                "geminiModel", "gemini-3.6-flash"
         );
     }
 }

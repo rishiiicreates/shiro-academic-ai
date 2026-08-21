@@ -11,7 +11,7 @@ public class AppProperties {
     @Value("${gemini.api-key:}")
     private String geminiApiKey;
 
-    @Value("${gemini.model:gemini-3.1-flash-lite}")
+    @Value("${gemini.model:gemini-3.6-flash}")
     private String geminiModel;
 
     @Value("${gemini.temperature:0.2}")
