@@ -18,7 +18,8 @@ build/
 *.env
 
 # Data & Vector Embeddings
-data/
+/data/
+!frontend/src/data/
 *.faiss
 *.pkl
 *.db
