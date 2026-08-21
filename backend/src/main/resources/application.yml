@@ -12,7 +12,7 @@ sidecar:
 
 gemini:
   api-key: ${GEMINI_API_KEY:}
-  model: ${GEMINI_MODEL:gemini-3.1-flash-lite}
+  model: ${GEMINI_MODEL:gemini-3.6-flash}
   temperature: 0.2
   base-url: https://generativelanguage.googleapis.com/v1beta
 
