@@ -36,21 +36,6 @@ export async function fetchThread(id) {
   return found;
 }
 
-export async function createThread(title, semester, subject) {
-  const newThread = {
-    id: 'thread-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
-    title: title || 'New Study Session',
-    semester: semester || null,
-    subject: subject || null,
-    messages: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  const threads = getStoredThreads();
-  persistThreads([newThread, ...threads]);
-  return newThread;
-}
-
 export async function saveThreadMessages(threadId, messages, subject = null) {
   const threads = getStoredThreads();
   let found = false;

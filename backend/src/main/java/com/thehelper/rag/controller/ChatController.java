@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thehelper.rag.model.*;
 import com.thehelper.rag.service.GeminiStreamService;
 import com.thehelper.rag.service.RetrievalService;
-import com.thehelper.rag.service.ThreadStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -24,7 +23,6 @@ public class ChatController {
 
     private final RetrievalService retrievalService;
     private final GeminiStreamService geminiStreamService;
-    private final ThreadStorageService threadStorageService;
     private final ObjectMapper objectMapper;
 
     private static final String SYSTEM_INSTRUCTION = """
@@ -112,11 +110,9 @@ public class ChatController {
 
     public ChatController(RetrievalService retrievalService,
                           GeminiStreamService geminiStreamService,
-                          ThreadStorageService threadStorageService,
                           ObjectMapper objectMapper) {
         this.retrievalService = retrievalService;
         this.geminiStreamService = geminiStreamService;
-        this.threadStorageService = threadStorageService;
         this.objectMapper = objectMapper;
     }
 

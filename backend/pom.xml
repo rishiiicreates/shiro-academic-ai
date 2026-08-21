@@ -10,10 +10,10 @@
         <relativePath/>
     </parent>
     <groupId>com.thehelper</groupId>
-    <artifactId>the-helper-rag-backend</artifactId>
+    <artifactId>chiroshiro-backend</artifactId>
     <version>1.0.0</version>
-    <name>the-helper-rag-backend</name>
-    <description>Spring Boot WebFlux RAG Backend for THE Helper Syllabus App</description>
+    <name>chiroshiro-backend</name>
+    <description>Spring Boot WebFlux RAG Backend for ChiroShiro Academic Assistant</description>
     
     <properties>
         <java.version>17</java.version>

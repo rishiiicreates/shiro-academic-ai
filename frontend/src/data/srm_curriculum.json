@@ -1,0 +1,834 @@
+{
+  "Semester 1": [
+    {
+      "name": "Basic Civil & Mechanical Workshop",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Biology",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Biomedical Sensors",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Calculus And Linear Algebra",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Cell Biology",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Chemistry",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Foreign Languages",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Fundamental Of Economics (FOE)",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Introduction To Computational Biology",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Philosophy Of Engineering",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Physical And Analytical Chemistry",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Programming For Problem Solving",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 2": [
+    {
+      "name": "Advanced Calculus And Complex Analysis",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Building Materials In The Built Environment",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Communicative English",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Electrical And Electronics Engineering",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Electromagnetic Physics",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Electronic System And PCB Design",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Engineering Mechanics",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Object Oriented Design And Programming",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Physics-Mechanics",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Semiconductor Physics And Computational Methods",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 3": [
+    {
+      "name": "Advanced Programming Practice",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Basic Chemical Engineering",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Biochemistry",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Bioprocess Principles",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Computer Organization And Architecture",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Data Structures And Algorithm",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Design Thinking And Methodology",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Digital Logic Design",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Electromagnetic Thoery And Interference",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Foundation of Data Science (FDS)",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Genetics And Cytogenetics",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Microbiology",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Numerical Methods & Analysis",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Operating Systems",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Solid State Devices",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Transforms And Boundary Value Problems",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 4": [
+    {
+      "name": "Artificial Intelligence",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Bioprocess Engineering",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "CGA",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Cell Communication And Signaling",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Chemical Engineering Principles",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Database Management Systems",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Design And Analysis Of Algorithms",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Digital Image Processing",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Internet Of Things (IOT)",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Molecular Biology",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Probability & Applied Statistics",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Probability And Queueing Theory",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Signal Processing",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Social Engineering",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Software Process",
+      "categories": [
+        "Notes",
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 5": [
+    {
+      "name": "Community Connect",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Computer Networks",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Discrete Mathematics",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Formal Language And Automata",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Full Stack Web Development",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Machine Learning",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Open Elective 1",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 2",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 6": [
+    {
+      "name": "Compiler Design",
+      "categories": [
+        "Notes",
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Data Science",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Open Elective 2",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 3",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 4",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Project & MOOC",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Software Engineering & Project Management (SEPM)",
+      "categories": [
+        "PYQs",
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 7": [
+    {
+      "name": "Behavioral Psychology",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Open Elective 3",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 5",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 6",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 7",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Professional Elective 8",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester 8": [
+    {
+      "name": "Internship",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    },
+    {
+      "name": "Major Project",
+      "categories": [
+        "Syllabus"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Semester Other": [
+    {
+      "name": "Biochemistry",
+      "categories": [
+        "Notes"
+      ],
+      "files_count": 0
+    }
+  ],
+  "Study Plus": [
+    {
+      "name": "Artificial Intelligence",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biomedical Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biomedical Engineering (Machine Learning)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biotechnology",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biotechnology (Computational Biology)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biotechnology (Food Technology)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Biotechnology (Regenerative Medicine)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Chemical Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Civil Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (AI & ML)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Big Data Analytics)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Business Systems)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Cloud Computing)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Core)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Cyber Security)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Data Science)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Information Technology)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Internet of Things)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Computer Science & Engineering (Software Engineering)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Electrical and Electronics Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Electronics and Communication Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Electronics and Communication Engineering (Data Science)",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Electronics and Computer Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Mechanical Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    },
+    {
+      "name": "Mechatronics Engineering",
+      "categories": [
+        "Curriculum"
+      ],
+      "files_count": 1
+    }
+  ]
+}

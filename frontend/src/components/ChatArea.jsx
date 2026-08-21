@@ -170,7 +170,6 @@ export default function ChatArea({
         metadata={metadata}
       />
 
-      {/* Bottom Input with Study Mode Toggle Bar */}
       {/* Bottom Input with Study Mode Toggle Bar (Isolated State for 0ms Latency) */}
       <InputBox
         attachments={attachments}

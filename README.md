@@ -209,7 +209,7 @@ python sidecar_app.py
 ```bash
 cd backend
 mvn clean package -DskipTests
-java -jar target/the-helper-rag-backend-1.0.0.jar
+java -jar target/chiroshiro-backend-1.0.0.jar
 ```
 *Health Check:* `curl http://127.0.0.1:8080/api/health`
 
