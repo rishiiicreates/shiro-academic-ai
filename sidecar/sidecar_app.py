@@ -585,7 +585,8 @@ def retrieve(req: RetrieveRequest):
     model = get_model()
     collection = get_collection()
 
-    query_vector = list(model.embed([query_text]))[0].tolist()
+    embed_query = f"{detected_subject} {query_text}" if (detected_subject and detected_subject.lower() not in query_text.lower()) else query_text
+    query_vector = list(model.embed([embed_query]))[0].tolist()
 
     where_clauses = []
     if req.semester and req.semester.strip():

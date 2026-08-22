@@ -227,7 +227,7 @@ public class ChatController {
                     allSourcesRef.set(combinedSources);
 
                     // Build prompt adapted to question, study mode, and references
-                    String groundedCurrentTurn = buildGroundedPrompt(userMessage, finalIsGreeting, activeStudyMode, primaryChunks, pyqChunks, attachments);
+                    String groundedCurrentTurn = buildGroundedPrompt(userMessage, finalIsGreeting, activeStudyMode, finalEffectiveSubject, primaryChunks, pyqChunks, attachments);
 
                     // Build multi-turn conversation list for Gemini
                     List<Map<String, Object>> contents = new ArrayList<>();
@@ -268,6 +268,8 @@ public class ChatController {
                     }
                     currentParts.add(Collections.singletonMap("text", groundedCurrentTurn));
                     contents.add(Map.of("role", "user", "parts", currentParts));
+
+                    log.info("Constructed Gemini Prompt:\n{}", groundedCurrentTurn);
 
                     // Event 1: Emit all combined sources to client immediately
                     ServerSentEvent<String> sourcesEvent = createSseEvent(ChatEvent.sources(threadId, combinedSources));
@@ -423,7 +425,7 @@ public class ChatController {
                 }
             }
         }
-        return !matched.isEmpty() ? matched : chunks;
+        return matched;
     }
 
     private boolean isPyqRelated(String query) {
@@ -470,7 +472,7 @@ public class ChatController {
         return query;
     }
 
-    private String buildGroundedPrompt(String query, boolean isGreeting, String studyMode, List<RetrievedChunk> primaryChunks, List<RetrievedChunk> pyqChunks, List<AttachmentRecord> attachments) {
+    private String buildGroundedPrompt(String query, boolean isGreeting, String studyMode, String activeSubject, List<RetrievedChunk> primaryChunks, List<RetrievedChunk> pyqChunks, List<AttachmentRecord> attachments) {
         StringBuilder sb = new StringBuilder();
 
         if (isGreeting) {
@@ -483,6 +485,14 @@ public class ChatController {
             sb.append("3. Greet them, let them know you're ready to help with their SRM coursework (notes, PYQs, exam prep, or learning concepts from scratch), and ask what subject or topic they want to tackle.\n");
             sb.append("4. Do NOT introduce yourself with robotic boilerplate (e.g. 'Hello, I am Shiro...'). Just jump in with your natural personality.\n");
             return sb.toString();
+        }
+
+        if (activeSubject != null && !activeSubject.trim().isEmpty()) {
+            sb.append("=== ACTIVE FOCUS SUBJECT ===\n");
+            sb.append("Selected Course Subject: ").append(activeSubject.trim()).append("\n");
+            sb.append("The student has explicitly focused on ").append(activeSubject.trim()).append(".\n");
+            sb.append("All references to 'Unit 1', 'Unit 2', syllabus modules, exam questions, code, and concepts in this session STRICTLY refer to ")
+              .append(activeSubject.trim()).append(", NOT to any other course or default subject.\n\n");
         }
 
         if (primaryChunks != null && !primaryChunks.isEmpty()) {
@@ -498,6 +508,10 @@ public class ChatController {
                         m.getPageNum()));
                 sb.append(chunk.getText()).append("\n\n");
             }
+        } else if (activeSubject != null && !activeSubject.trim().isEmpty()) {
+            sb.append("=== SRM COURSE REFERENCE MATERIALS ===\n");
+            sb.append("(No direct reference notes retrieved for ").append(activeSubject.trim()).append(". Teach and explain concepts strictly for ")
+              .append(activeSubject.trim()).append(" using your expert domain knowledge and syllabus understanding without cross-subject confusion.)\n\n");
         }
 
         if (pyqChunks != null && !pyqChunks.isEmpty()) {
