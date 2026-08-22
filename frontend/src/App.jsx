@@ -66,9 +66,11 @@ export default function App() {
 
     fetchThread(activeThreadId)
       .then((t) => {
+        if (!t) return;
         setActiveThread(t);
         setMessages(t.messages || []);
-        if (t.subject) setSubject(t.subject);
+        setSubject(t.subject || '');
+        setStudyMode(t.studyMode || 'all');
       })
       .catch((err) => {
         console.error('Failed to fetch thread:', err);
@@ -85,6 +87,8 @@ export default function App() {
     setActiveThread(null);
     setMessages([]);
     setAttachments([]);
+    setSubject('');
+    setStudyMode('all');
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
@@ -208,7 +212,7 @@ export default function App() {
         isStreamingRef.current = false;
         abortControllerRef.current = null;
         setMessages((finalMsgs) => {
-          saveThreadMessages(currentThreadId, finalMsgs, targetSubject);
+          saveThreadMessages(currentThreadId, finalMsgs, targetSubject, studyMode);
           loadThreads();
           return finalMsgs;
         });
@@ -226,7 +230,7 @@ export default function App() {
               content: (updated[lastIdx].content ? updated[lastIdx].content + '\n\n' : '') + `⚠️ **Error:** ${errMsg}`
             };
           }
-          saveThreadMessages(currentThreadId, updated, targetSubject);
+          saveThreadMessages(currentThreadId, updated, targetSubject, studyMode);
           loadThreads();
           return updated;
         });

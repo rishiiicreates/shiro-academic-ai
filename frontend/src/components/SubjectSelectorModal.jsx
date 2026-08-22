@@ -4,9 +4,12 @@ import {
   Search, 
   Check, 
   BookOpen, 
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 import srmCurriculumData from '../data/srm_curriculum.json';
+
+const SEMESTERS = ['All', 'Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'];
 
 export default function SubjectSelectorModal({
   isOpen,
@@ -16,6 +19,7 @@ export default function SubjectSelectorModal({
   metadata
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSem, setSelectedSem] = useState('All');
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -29,33 +33,62 @@ export default function SubjectSelectorModal({
     };
   }, [isOpen]);
 
-  // Extract unique subject names from curriculum data & metadata
-  const allSubjects = useMemo(() => {
-    const set = new Set();
+  // Extract structured list of subjects with semester tags
+  const subjectList = useMemo(() => {
+    const list = [];
+    const seen = new Set();
     
     if (srmCurriculumData) {
-      Object.values(srmCurriculumData).forEach((subs) => {
+      Object.entries(srmCurriculumData).forEach(([semName, subs]) => {
         subs.forEach((s) => {
-          if (s.name) set.add(s.name.trim());
+          if (s.name && !seen.has(s.name.trim())) {
+            seen.add(s.name.trim());
+            list.push({
+              name: s.name.trim(),
+              semester: semName,
+              categories: s.categories || []
+            });
+          }
         });
       });
     }
 
     if (metadata?.subjects) {
-      metadata.subjects.forEach((s) => set.add(s.trim()));
+      metadata.subjects.forEach((subName) => {
+        const cleanName = subName.trim();
+        if (!seen.has(cleanName)) {
+          seen.add(cleanName);
+          list.push({
+            name: cleanName,
+            semester: 'All',
+            categories: ['Notes', 'PYQs']
+          });
+        }
+      });
     }
 
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [metadata]);
 
-  // Filtered subjects based on search query
+  // Filtered subjects based on search query & selected semester tab
   const filteredSubjects = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return allSubjects;
+    let result = subjectList;
+
+    if (selectedSem !== 'All') {
+      const semNum = selectedSem.replace('Sem ', 'Semester ');
+      result = result.filter((s) => s.semester === semNum || s.semester === 'All');
     }
-    const q = searchQuery.toLowerCase().trim();
-    return allSubjects.filter((s) => s.toLowerCase().includes(q));
-  }, [searchQuery, allSubjects]);
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter((s) => 
+        s.name.toLowerCase().includes(q) || 
+        s.semester.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [searchQuery, selectedSem, subjectList]);
 
   if (!isOpen) return null;
 
@@ -71,6 +104,7 @@ export default function SubjectSelectorModal({
   const handleClear = () => {
     setSubject('');
     setSearchQuery('');
+    setSelectedSem('All');
   };
 
   return (
@@ -83,9 +117,9 @@ export default function SubjectSelectorModal({
               <BookOpen size={20} />
             </div>
             <div>
-              <h2 className="subject-picker-title">Select SRM Course Subject</h2>
+              <h2 className="subject-picker-title">Select Focus Subject</h2>
               <p className="subject-picker-subtitle">
-                Focus Shiro's knowledge base and study materials on a specific course.
+                Target Shiro's dense vector search and exam questions on a specific course.
               </p>
             </div>
           </div>
@@ -101,7 +135,7 @@ export default function SubjectSelectorModal({
             <input
               type="text"
               className="subject-picker-search-input"
-              placeholder="Search subjects (e.g. Operating Systems, DAA, Linear Algebra, AI, ML...)"
+              placeholder="Search by subject name or keyword (e.g. OS, DAA, DBMS, Calculus, AI...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -112,6 +146,20 @@ export default function SubjectSelectorModal({
               </button>
             )}
           </div>
+
+          {/* Semester Filter Tabs */}
+          <div className="semester-tabs-row">
+            {SEMESTERS.map((sem) => (
+              <button
+                key={sem}
+                type="button"
+                className={`sem-filter-pill ${selectedSem === sem ? 'active' : ''}`}
+                onClick={() => setSelectedSem(sem)}
+              >
+                {sem}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Subjects List Grid */}
@@ -120,21 +168,30 @@ export default function SubjectSelectorModal({
             <div className="subject-picker-empty">
               <BookOpen size={30} color="var(--text-muted)" />
               <p>No subjects found matching "{searchQuery}"</p>
+              <button className="empty-clear-filter-btn" onClick={handleClear}>
+                Reset Search Filters
+              </button>
             </div>
           ) : (
             <div className="subject-picker-grid">
-              {filteredSubjects.map((subName) => {
-                const isSelected = subject === subName;
+              {filteredSubjects.map((sub) => {
+                const isSelected = subject === sub.name;
                 return (
                   <button
-                    key={subName}
+                    key={sub.name}
+                    type="button"
                     className={`subject-picker-card ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handleSelectSubject(subName)}
+                    onClick={() => handleSelectSubject(sub.name)}
                   >
                     <div className="subject-picker-card-inner">
-                      <span className="subject-picker-name" title={subName}>
-                        {subName}
-                      </span>
+                      <div className="subject-card-details">
+                        <span className="subject-picker-name" title={sub.name}>
+                          {sub.name}
+                        </span>
+                        {sub.semester !== 'All' && (
+                          <span className="subject-card-sem-tag">{sub.semester}</span>
+                        )}
+                      </div>
                       {isSelected && (
                         <div className="subject-selected-check">
                           <Check size={14} />
@@ -161,12 +218,15 @@ export default function SubjectSelectorModal({
                 </button>
               </div>
             ) : (
-              <span className="no-subject-text">Searching across all SRM subjects</span>
+              <span className="no-subject-text">
+                <Sparkles size={13} style={{ display: 'inline', marginRight: 4 }} />
+                Searching across all 68+ SRM course subjects
+              </span>
             )}
           </div>
 
           <div className="subject-picker-footer-right">
-            <button className="secondary-picker-btn" onClick={onClose}>
+            <button type="button" className="secondary-picker-btn" onClick={onClose}>
               Done
             </button>
           </div>

@@ -19,7 +19,7 @@ MANIFEST_PATH = os.path.join(EMBEDDINGS_DIR, 'manifest.json')
 IMAGES_DIR = os.getenv('IMAGES_DIR', os.path.join(DATA_DIR, 'images'))
 IMAGES_MANIFEST_PATH = os.getenv('IMAGES_MANIFEST_PATH', os.path.join(DATA_DIR, 'images_manifest.json'))
 
-MIN_SIMILARITY_THRESHOLD = 0.50
+MIN_SIMILARITY_THRESHOLD = 0.25
 
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
@@ -152,6 +152,35 @@ SUBJECT_MAP = {
     'cell biology': 'Cell Biology',
     'biology': 'Biology'
 }
+
+def canonicalize_subject(sub: Optional[str]) -> Optional[str]:
+    if not sub or not sub.strip():
+        return None
+    s_clean = sub.strip()
+    s_lower = s_clean.lower()
+    
+    # 1. Exact alias match in SUBJECT_MAP
+    if s_lower in SUBJECT_MAP:
+        return SUBJECT_MAP[s_lower]
+        
+    # 2. Check if it matches any manifest subject directly or normalized
+    manifest = get_manifest()
+    all_subs = manifest.get("subjects", []) if manifest else []
+    for cand in all_subs:
+        if cand.lower() == s_lower:
+            return cand
+            
+    # 3. Fuzzy match against aliases and manifest
+    for alias, canonical in sorted(SUBJECT_MAP.items(), key=lambda x: -len(x[0])):
+        if alias in s_lower or s_lower in alias:
+            return canonical
+            
+    for cand in all_subs:
+        cand_lower = cand.lower()
+        if s_lower in cand_lower or cand_lower in s_lower:
+            return cand
+
+    return s_clean
 
 def detect_subject_from_query(text: str) -> Optional[str]:
     if not text:
@@ -526,7 +555,8 @@ def retrieve(req: RetrieveRequest):
     if not query_text:
         raise HTTPException(status_code=400, detail="Query text cannot be empty.")
 
-    detected_subject = req.subject or detect_subject_from_query(query_text)
+    raw_subject = req.subject.strip() if (req.subject and req.subject.strip()) else None
+    detected_subject = canonicalize_subject(raw_subject) if raw_subject else detect_subject_from_query(query_text)
     is_pyq_mode = (req.category or "").upper() == "PYQS" or (req.study_mode or "").lower() == "pyqs" or is_full_paper_query(query_text)
 
     # 1. FULL QUESTION PAPER RETRIEVAL: If student asks for complete paper of a subject/year
@@ -581,6 +611,11 @@ def retrieve(req: RetrieveRequest):
 
     try:
         results = collection.query(**kwargs)
+        # If strict subject where-clause yielded 0 results, retry without where filter
+        if where and (not results.get("documents") or len(results.get("documents", [[]])[0]) == 0):
+            print(f"[Sidecar] 0 results with where filter {where}, retrying without strict filter...")
+            kwargs.pop("where", None)
+            results = collection.query(**kwargs)
     except Exception as e:
         print(f"[Sidecar] Query error with filter {where}: {e}")
         kwargs.pop("where", None)

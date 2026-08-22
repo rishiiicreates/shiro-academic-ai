@@ -49,7 +49,9 @@ export default function InputBox({
   isStreaming,
   onStop,
   subject,
+  setSubject,
   onOpenFilters,
+  onClearSubject,
   studyMode,
   setStudyMode,
   attachments,
@@ -147,16 +149,32 @@ export default function InputBox({
           })}
         </div>
 
-        {/* Subject Quick Pill */}
-        <button
-          type="button"
-          className={`subject-quick-pill ${subject ? 'has-subject' : ''}`}
-          onClick={onOpenFilters}
-          title="Select or change focus subject"
-        >
-          <BookOpen size={12} />
-          <span>{subject ? subject : 'All Subjects'}</span>
-        </button>
+        {/* Subject Quick Pill with Clear Button */}
+        <div className="subject-quick-pill-container">
+          <button
+            type="button"
+            className={`subject-quick-pill ${subject ? 'has-subject' : ''}`}
+            onClick={onOpenFilters}
+            title="Select or change focus subject"
+          >
+            <BookOpen size={12} />
+            <span className="subject-pill-text">{subject ? subject : 'All Subjects'}</span>
+          </button>
+          {subject && (
+            <button
+              type="button"
+              className="subject-pill-clear-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onClearSubject) onClearSubject();
+                else if (setSubject) setSubject('');
+              }}
+              title="Clear subject filter"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Input Box & Solid Bottom Backdrop */}

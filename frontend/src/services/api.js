@@ -36,14 +36,15 @@ export async function fetchThread(id) {
   return found;
 }
 
-export async function saveThreadMessages(threadId, messages, subject = null) {
+export async function saveThreadMessages(threadId, messages, subject = null, studyMode = 'all') {
   const threads = getStoredThreads();
   let found = false;
+
   const updated = threads.map((t) => {
     if (t.id === threadId) {
       found = true;
-      let title = t.title;
-      if (title === 'New Study Session' || title === 'Syllabus Chat' || !title) {
+      let title = t.title || 'Study Session';
+      if (!t.title || t.title === 'Study Session' || t.title === 'New Chat') {
         const firstUser = messages.find((m) => m.role === 'user');
         if (firstUser && firstUser.content) {
           title = firstUser.content.length > 35 ? firstUser.content.substring(0, 35) + '...' : firstUser.content;
@@ -53,6 +54,7 @@ export async function saveThreadMessages(threadId, messages, subject = null) {
         ...t,
         title,
         subject: subject !== null && subject !== undefined ? subject : t.subject,
+        studyMode: studyMode || t.studyMode || 'all',
         messages,
         updatedAt: new Date().toISOString()
       };
@@ -69,7 +71,8 @@ export async function saveThreadMessages(threadId, messages, subject = null) {
     updated.unshift({
       id: threadId,
       title,
-      subject,
+      subject: subject || null,
+      studyMode: studyMode || 'all',
       messages,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

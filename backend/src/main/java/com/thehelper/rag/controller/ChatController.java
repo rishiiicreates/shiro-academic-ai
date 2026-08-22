@@ -144,11 +144,17 @@ public class ChatController {
         String retrievalQuery = isGreeting ? userMessage : enrichRetrievalQueryWithHistory(userMessage, priorMessages);
         boolean isPyqQuery = !isGreeting && (isPyqRelated(userMessage) || isPyqRelated(retrievalQuery));
 
-        if (isPyqQuery && !"notes".equals(studyMode)) {
-            studyMode = "pyqs";
-            effectiveCategory = "PYQs";
+        // Preserve explicit study mode selected by the student
+        if ("learn_basics".equals(studyMode)) {
+            effectiveCategory = "Notes";
         } else if ("notes".equals(studyMode)) {
             effectiveCategory = "Notes";
+        } else if ("pyqs".equals(studyMode)) {
+            effectiveCategory = "PYQs";
+        } else if (isPyqQuery) {
+            // Only auto-switch to pyqs if studyMode was generic ('all')
+            studyMode = "pyqs";
+            effectiveCategory = "PYQs";
         }
 
         // Auto-detect subject from message/context/thread history if not explicitly chosen

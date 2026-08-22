@@ -78,14 +78,19 @@ export default function ChatArea({
             <span className="mobile-brand-title">Shiro</span>
           </div>
 
-          <div className="thread-header-info desktop-only">
-            <div className="current-thread-title">
+          <div className="thread-header-info">
+            <div className="current-thread-title desktop-only">
               {thread?.title || 'Shiro'}
             </div>
             {subject && (
-              <div className="active-filter-indicator">
-                Focus Subject: {subject}
-              </div>
+              <button 
+                type="button"
+                className="active-filter-indicator"
+                onClick={() => setShowFilters(true)}
+                title="Click to change or clear focus subject"
+              >
+                Focus: {subject}
+              </button>
             )}
           </div>
         </div>
@@ -178,7 +183,9 @@ export default function ChatArea({
         isStreaming={isStreaming}
         onStop={onStop}
         subject={subject}
+        setSubject={setSubject}
         onOpenFilters={() => setShowFilters(true)}
+        onClearSubject={() => setSubject('')}
         studyMode={studyMode}
         setStudyMode={setStudyMode}
       />
