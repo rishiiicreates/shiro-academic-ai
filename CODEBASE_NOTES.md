@@ -1,6 +1,6 @@
-# 🎓 ChiroShiro (Shiro) — Comprehensive Codebase Defense & Architecture Guide
+# 🎓 Shiro — Comprehensive Codebase Defense & Architecture Guide
 
-This living document serves as the master defense and technical blueprint for **ChiroShiro**, a domain-specific RAG system for university engineering curricula.
+This living document serves as the master defense and technical blueprint for **Shiro**, a domain-specific RAG system for university engineering curricula.
 
 ---
 
@@ -22,8 +22,8 @@ ChrioShiro/
 │   └── src/main/
 │       ├── resources/
 │       │   └── application.yml        # Reactive web server config, sidecar URL, Gemini model parameters
-│       └── java/com/shiro/rag/
-│           ├── ShiroRagApplication.java     # Spring Boot application entry point
+│       └── java/com/thehelper/rag/
+│           ├── TheHelperRagApplication.java # Spring Boot application entry point
 │           ├── config/
 │           │   ├── AppProperties.java       # Typed configuration bean binding application.yml & env vars
 │           │   ├── CorsConfig.java          # Reactive WebFilter configuring global permissive CORS
@@ -89,54 +89,164 @@ ChrioShiro/
 
 ---
 
-### 2. Request & Data-Flow Story
+### 2. Deep-Dive End-to-End Data Flow Story
 
-#### Step 1: User Action & Client Packaging (Frontend)
-1. The student navigates the React SPA (`App.jsx`). They can select an active **Study Mode** (`notes`, `pyqs`, `learn_basics`, or `all`), focus on a specific university course (e.g., *Operating Systems*), or attach a slide/diagram/PDF.
-2. If attaching a file, `InputBox.jsx` immediately calls `uploadFile()` in `api.js` $\rightarrow$ `POST /api/upload` on Spring Boot. `UploadController` reads reactive byte streams via `DataBufferUtils.join()` and forwards the payload to `FileUploadService.java`.
-3. `FileUploadService` initiates a 2-step resumable upload to the **Google Gemini Files API** (`generativelanguage.googleapis.com/upload/v1beta/files`), obtaining a `fileUri` (e.g. `https://generativelanguage.googleapis.com/v1beta/files/...`).
-4. When the user sends a message, `api.js` executes `streamChat()` via `POST /api/chat`, packaging:
-   - Current user prompt.
-   - Active thread history (array of `{role, content}` objects from `localStorage`).
-   - Private past session summaries (`buildLocalUserSessions()`).
-   - Attached file records.
-   - Selected subject & study mode metadata.
+The data flow spans four interconnected environments:
+1. **Client Browser (React 18 SPA)**
+2. **Spring Boot Reactive Orchestrator (Netty Engine on :8080)**
+3. **Python FastAPI Retrieval Sidecar (Port :8001)**
+4. **Google Gemini Foundation Models (Cloud AI API)**
 
-#### Step 2: Ingestion, Normalization & Parallel Retrieval (Spring Boot Backend)
-5. `ChatController.java` (`POST /api/chat`) acts as the reactive orchestration core:
-   - **Greeting Interception**: If the prompt is a casual greeting (`isConversationalOrGreeting`), it bypasses RAG retrieval to avoid polluting the prompt with unsolicited lecture dumps.
-   - **Subject Normalization**: If no subject is explicitly selected, `detectSubjectFromText()` evaluates regex patterns over 40+ academic aliases (e.g. `"dsa"` $\rightarrow$ `"Data Structures And Algorithm"`, `"os"` $\rightarrow$ `"Operating Systems"`), or falls back to prior turns in `priorMessages`.
-   - **Context Enrichment**: If the query is an ambiguous follow-up (e.g., `"explain next"`, `"more questions on this"`), `enrichRetrievalQueryWithHistory()` prepends context from the previous user turn.
-6. `ChatController` issues asynchronous reactive `WebClient` requests to the Python Retrieval Sidecar (`:8001`):
-   - **Primary Retrieval**: `Mono<RetrieveResponse>` targeting ChromaDB vector search or notes.
-   - **PYQ Retrieval**: If the query or study mode is exam/PYQ related, a parallel `Mono<List<RetrievedChunk>>` is dispatched.
-   - `Mono.zip(primaryRetrieveMono, pyqRetrieveMono)` awaits both in a non-blocking Reactor pipeline.
+```
++---------------------------------------------------------------------------------------------------------+
+|                                        1. BROWSER CLIENT (React SPA)                                    |
+|                                                                                                         |
+|  [User Query] + [Active Study Mode] + [Attached PDF/Img] + [Thread Messages] + [User Session Summaries] |
++---------------------------------------------------+-----------------------------------------------------+
+                                                    |
+                         (A) Multipart Upload       |       (B) POST /api/chat (SSE Request)
+                             POST /api/upload       |           Accept: text/event-stream
+                                                    |
++---------------------------------------------------v-----------------------------------------------------+
+|                                 2. SPRING BOOT WEBFLUX BACKEND (:8080)                                  |
+|                                                                                                         |
+|  UploadController (FilePart) ──► FileUploadService ──► Google Gemini Files API (Returns file_uri)       |
+|                                                                                                         |
+|  ChatController.chat(ChatRequest):                                                                      |
+|   1. Intent Guard: isConversationalOrGreeting() -> Short-circuits RAG on greetings                     |
+|   2. Subject Normalizer: detectSubjectFromText() regex over 40+ academic aliases (e.g. 'os' -> OS)     |
+|   3. Query Enrichment: enrichRetrievalQueryWithHistory() prepends prior turn to ambiguous follow-ups    |
+|   4. Reactive Fan-out: Mono.zip(PrimaryRetrievalMono, PyqRetrievalMono)                                 |
++---------------------------------------------------+-----------------------------------------------------+
+                                                    |
+                                                    | HTTP POST http://127.0.0.1:8001/retrieve
+                                                    v
++---------------------------------------------------------------------------------------------------------+
+|                                3. PYTHON FASTAPI RETRIEVAL SIDECAR (:8001)                              |
+|                                                                                                         |
+|  sidecar_app.py /retrieve:                                                                              |
+|   ├─► IF is_full_paper_query: SQL regex query on `exam_papers` table                                    |
+|   ├─► IF study_mode == 'pyqs': SQL BM25 match on `pyq_questions_fts` (35,909 exam questions)            |
+|   └─► ELSE: FastEmbed ONNX (BAAI/bge-small-en-v1.5) -> 384-d vector -> ChromaDB `the_helper_docs` (95k) |
++---------------------------------------------------+-----------------------------------------------------+
+                                                    |
+                                                    | RetrieveResponse (JSON Chunks + Metadata)
+                                                    v
++---------------------------------------------------------------------------------------------------------+
+|                               4. PROMPT SYNTHESIS & LLM STREAMING (Backend)                             |
+|                                                                                                         |
+|  ChatController:                                                                                        |
+|   1. Cross-Subject Noise Filter: filterChunksBySubject()                                                |
+|   2. Grounding Prompt Builder: buildGroundedPrompt() binds units, PYQ formats, file_uris                |
+|   3. System Instruction Synthesis: Injects student private session memory into SYSTEM_INSTRUCTION        |
+|   4. Immediate SSE Emission: createSseEvent(ChatEvent.sources(...)) sent to client                      |
+|                                                                                                         |
+|  GeminiStreamService:                                                                                   |
+|   - Reactive WebClient opens SSE stream to Google Gemini (gemini-3.6-flash)                             |
+|   - Resilient Retry.backoff(4, 2s) catches HTTP 429 rate limits & 5xx errors                            |
+|   - Jackson extracts text fragments -> Emitted in real-time as `event: token`                           |
+|   - On completion -> Emits `event: done`                                                                |
++---------------------------------------------------+-----------------------------------------------------+
+                                                    |
+                                                    | Real-Time SSE Stream (sources -> tokens -> done)
+                                                    v
++---------------------------------------------------------------------------------------------------------+
+|                                  5. CLIENT-SIDE STREAM CONSUMPTION (React)                              |
+|                                                                                                         |
+|  api.js: ReadableStream lines parsed -> Dispatches onSources, onToken, onDone                           |
+|  MessageItem.jsx: preprocessMarkdown() cleans LaTeX delimiters ($$), \begin{cases}, blockquotes (>)     |
+|  Renderer: rehype-katex (Math formulas) + MermaidDiagram.jsx (Dynamic SVG graphs/mindmaps)              |
+|  State: saveThreadMessages() syncs full thread state to LocalStorage ('shiro_user_threads_v2')          |
++---------------------------------------------------------------------------------------------------------+
+```
 
-#### Step 3: Vector & Relational Query Execution (Python Sidecar)
-7. Inside `sidecar/sidecar_app.py` (`POST /retrieve`):
-   - **Full Exam Paper Match**: If the student asks for an entire paper (`is_full_paper_query`), `retrieve_full_exam_paper_sql()` executes a SQL query on the `exam_papers` table with year/subject filtering.
-   - **Topic-Wise PYQ Search**: If in `pyqs` mode, `retrieve_topic_pyqs_sql()` executes high-speed BM25 full-text search against the SQLite FTS5 table `pyq_questions_fts` joined on `pyq_questions`, enforcing strict subject isolation.
-   - **Dense Semantic Retrieval**: For concept queries, the local ONNX model `BAAI/bge-small-en-v1.5` (`fastembed`) encodes the query into a 384-dimensional vector. ChromaDB executes cosine similarity search over `the_helper_docs` (95,672 pre-indexed chunks), applying metadata filters (`subject`, `semester`, `category`).
+---
 
-#### Step 4: Prompt Synthesis & Reactive LLM Streaming
-8. `ChatController.java` receives the retrieved chunks, filters out cross-subject noise (`filterChunksBySubject`), and calls `buildGroundedPrompt()`:
-   - Binds syllabus context, authentic PYQs with strict un-truncated formatting instructions, attached Gemini file URIs, and user past session summaries.
-9. Spring Boot immediately emits the first SSE event to the client:
-   - `event: sources` containing structured chunk metadata (file name, unit, subject, page number, similarity score).
-10. `GeminiStreamService.java` opens a streaming HTTP POST (`alt=sse`) to `gemini-3.6-flash`.
-11. As Gemini yields SSE chunks, Netty streams raw token chunks through a Reactor `Flux`. Jackson parses the JSON candidates and pushes `event: token` SSE messages in real-time to the browser.
-12. If a transient HTTP 429 rate limit is encountered, `Retry.backoff(4, Duration.ofSeconds(2))` intercepts the error and retries transparently.
-13. Upon stream completion, `ChatController` emits `event: done`.
+#### Detailed Step-by-Step Data Execution Path
 
-#### Step 5: Progressive Client Rendering (Frontend)
-14. In `api.js`, the browser's `ReadableStream` reader parses SSE lines:
-   - `sources` updates the active assistant message's reference cards.
-   - `token` incrementally appends text to `content`.
-15. `MessageItem.jsx` feeds the streaming text through `preprocessMarkdown()`:
-   - Corrects LaTeX delimiters (glued `$$`, missing fences around `\begin{cases}`, blockquote `>` prefix stripping).
-   - `react-markdown` + `rehype-katex` renders display and inline formulas.
-   - `MermaidDiagram.jsx` detects ```mermaid blocks and dynamically renders interactive SVG diagrams and mindmaps.
-16. On completion (`done`), `saveThreadMessages()` writes the full conversation back into `localStorage`.
+##### Phase A: Multimodal Asset Attachment (Optional User File Upload)
+1. **User Action**: The student drags-and-drops a class lecture slide, handwritten math problem, or assignment PDF into `InputBox.jsx`.
+2. **Client Dispatch**: `InputBox.jsx` immediately calls `uploadFile(file)` in [`api.js:114`](file:///Users/rishii/ChrioShiro/frontend/src/services/api.js#L114). A standard `multipart/form-data` POST request is fired to `/api/upload`.
+3. **Reactive Netty Handling**: In [`UploadController.java:27-47`](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/UploadController.java#L27-L47), Spring WebFlux ingests the `FilePart`. Instead of blocking a thread or dumping to a local temp file, `DataBufferUtils.join()` asynchronously accumulates the reactive byte buffers into a single in-memory byte array `byte[]`.
+4. **Resumable Google Gemini Upload**: `UploadController` delegates to [`FileUploadService.java:32-95`](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/service/FileUploadService.java#L32-L95):
+   - **Step 1 (Session Handshake)**: POST to `https://generativelanguage.googleapis.com/upload/v1beta/files?key=GEMINI_API_KEY` with headers `X-Goog-Upload-Protocol: resumable`, `X-Goog-Upload-Command: start`, and the file's MIME type + content length. Gemini returns an upload session URI via header `X-Goog-Upload-URL`.
+   - **Step 2 (Binary Transmission)**: WebClient pushes the raw binary stream to the received `X-Goog-Upload-URL` with `X-Goog-Upload-Command: upload, finalize`.
+   - **Step 3 (URI Extraction)**: Gemini returns JSON metadata with a cloud-accessible `file.uri` (e.g., `https://generativelanguage.googleapis.com/v1beta/files/abc123xyz`).
+5. **Client Response**: `UploadController` returns an [`AttachmentRecord`](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/model/AttachmentRecord.java) JSON payload containing `fileUri`, `mimeType`, `displayName`, and `sizeBytes`. The frontend UI adds an attachment chip to the input tray.
+
+---
+
+##### Phase B: User Submission & Client Packaging
+6. **Trigger**: The student types a question (or clicks a topic starter) and presses Enter.
+7. **Client State Assembly**: [`App.jsx:131-239`](file:///Users/rishii/ChrioShiro/frontend/src/App.jsx#L131-L239) and [`api.js:131-168`](file:///Users/rishii/ChrioShiro/frontend/src/services/api.js#L131-L168) bundle:
+   - `message`: The raw text query.
+   - `threadId`: Persistent UUID identifying this chat thread.
+   - `messages`: Chronological array of all previous turns in the active thread (`[{role, content}]`).
+   - `userSessions`: Array of up to 10 previous study thread summaries (`[{id, title, subject, questions}]`) retrieved from browser `localStorage` by `buildLocalUserSessions()`.
+   - `studyMode`: Active mode (`notes`, `pyqs`, `learn_basics`, or `all`).
+   - `subject`: Selected course focus (e.g., `"Operating Systems"`), if any.
+   - `attachments`: Array of `AttachmentRecord` objects containing the Gemini file URIs.
+8. **SSE Dispatch**: `api.js` executes `fetch('/api/chat', { method: 'POST', headers: { 'Accept': 'text/event-stream' }, body: ... })`.
+
+---
+
+##### Phase C: Spring Boot Orchestration & Request Enrichment
+9. **Endpoint Entry**: [`ChatController.java:120`](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L120) receives `ChatRequest`.
+10. **Conversational Intent Guard**: `isConversationalOrGreeting()` ([L308-317](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L308-L317)) evaluates regex matchers for pleasantries (e.g., `"hey"`, `"hello"`, `"who are you"`, `"thanks"`). If matched and no attachments exist, RAG vector retrieval is bypassed entirely to avoid hallucinated course dumps.
+11. **Subject Alias Normalization**: If the user didn't explicitly select a subject in the modal, `detectSubjectFromText()` ([L418-428](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L418-L428)) matches whole words against `SUBJECT_ALIASES` ([L319-416](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L319-L416)), mapping shorthand abbreviations and concepts (e.g., `"dsa"` $\rightarrow$ `"Data Structures And Algorithm"`, `"paging"` $\rightarrow$ `"Operating Systems"`, `"cayley hamilton"` $\rightarrow$ `"Calculus And Linear Algebra"`). If not in the current message, it scans prior messages backwards ([L168-188](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L168-L188)) to maintain thread subject context.
+12. **Multi-Turn Query Enrichment**: If the student enters an ambiguous follow-up (e.g., `"give more questions on this"`, `"what about worst case?"`, `"explain next"`), `enrichRetrievalQueryWithHistory()` ([L465-494](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L465-L494)) searches backwards through `priorMessages` and prepends the antecedent subject/topic into the retrieval query string.
+13. **Parallel Reactive Retrieval Fan-Out**:
+    - `primaryRetrieveMono`: WebClient POST to Sidecar `:8001/retrieve` with `{question, k: 5, subject, category, studyMode}`.
+    - `pyqRetrieveMono`: If `studyMode == 'pyqs'` or `isPyqRelated(query)`, a dedicated second WebClient call queries specifically for authentic exam questions.
+    - Both Monos are composed via `Mono.zip(primaryRetrieveMono, pyqRetrieveMono)` ([L218](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L218)), executing non-blockingly and asynchronously.
+
+---
+
+##### Phase D: Python Retrieval Sidecar Execution
+14. **Endpoint Entry**: [`sidecar_app.py:560`](file:///Users/rishii/ChrioShiro/sidecar/sidecar_app.py#L560) receives `RetrieveRequest`.
+15. **Query Routing**:
+    - **Path 1: Full Exam Paper Retrieval**: If `is_full_paper_query()` ([L455-466](file:///Users/rishii/ChrioShiro/sidecar/sidecar_app.py#L455-L466)) detects terms like `"full question paper 2024"`, `retrieve_full_exam_paper_sql()` queries the SQLite `exam_papers` table directly, retrieving complete university question papers.
+    - **Path 2: Topic-Wise PYQ Full-Text Search**: If `is_pyq_mode`, `retrieve_topic_pyqs_sql()` ([L315-425](file:///Users/rishii/ChrioShiro/sidecar/sidecar_app.py#L315-L425)) strips stopwords, tokenizes the prompt, and runs an FTS5 BM25 match against `pyq_questions_fts` joined on `pyq_questions` (35,909 records), enforcing strict `q.subject = ?` isolation.
+    - **Path 3: Dense Vector Semantic Search**: For conceptual queries:
+      - `FastEmbed` ONNX runtime (`BAAI/bge-small-en-v1.5`) embeds the query into a 384-dimensional dense float vector on CPU.
+      - ChromaDB queries the `the_helper_docs` collection (95,672 chunks) using cosine similarity.
+      - Metadata filters (`where = {"$and": [{"subject": ...}, {"semester": ...}]}`) restrict the candidate search space.
+      - Any chunks with cosine similarity $< 0.25$ (`MIN_SIMILARITY_THRESHOLD`) are pruned.
+16. **Response Output**: A [`RetrieveResponse`](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/model/RetrieveResponse.java) JSON array containing chunk text, similarity score, document filename, unit, and page numbers is returned to Spring Boot.
+
+---
+
+##### Phase E: Prompt Synthesis & Reactive LLM Streaming
+17. **Cross-Subject Post-Filter**: `filterChunksBySubject()` ([L430-450](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L430-L450)) cleans any stray vector results to eliminate syllabus contamination.
+18. **Grounded Prompt Construction**: `buildGroundedPrompt()` ([L496-591](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L496-L591)) generates structured context:
+    - Binds course reference notes with document titles and page citations.
+    - Injects authentic past exam questions with mandatory rules: *print complete questions in full before solutions; never truncate MCQs*.
+    - Injects pedagogical guidelines based on the active mode (`learn_basics`: intuition + analogies; `pyqs`: authentic exam structure; `notes`: curriculum theory).
+19. **Student Memory Injection**: `buildUserSessionMemoryContext()` ([L593-617](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L593-L617)) formats the student's recent session summaries and appends them to the persona system instruction (`SYSTEM_INSTRUCTION`).
+20. **Multimodal Conversation Assembly**: Builds the Gemini payload `contents` list containing all prior turns plus any previous or current `file_data` object references (`{mime_type, file_uri}`).
+21. **SSE Stream Initiation**:
+    - **Event 1 (`sources`)**: `ChatController` immediately emits `ServerSentEvent.builder().event("sources").data(json).build()` ([L275](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L275)), sending the citation list to the UI before LLM generation starts.
+    - **Streaming Tokens (`token`)**: `GeminiStreamService.streamGenerateContent()` ([L41-82](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/service/GeminiStreamService.java#L41-L82)) initiates a streaming HTTP POST with `alt=sse` to `gemini-3.6-flash`.
+    - **429 Rate-Limit Interceptor**: Backed by `Retry.backoff(4, Duration.ofSeconds(2)).filter(this::isRateLimitOrTransientError)`, any Google API throttling triggers an automatic exponential backoff retry.
+    - **Token Extraction**: Netty streams SSE chunks; `extractTextFromJson()` ([L95-131](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/service/GeminiStreamService.java#L95-L131)) uses Jackson to parse `candidates[0].content.parts[0].text` and emits each token as `event: token`.
+    - **Event Last (`done`)**: Upon completion of the upstream Flux, `ChatController` emits `event: done` ([L296-298](file:///Users/rishii/ChrioShiro/backend/src/main/java/com/thehelper/rag/controller/ChatController.java#L296-L298)).
+
+---
+
+##### Phase F: Frontend Stream Processing, Markdown Sanitation & Rendering
+22. **SSE Parsing**: In [`api.js:175-231`](file:///Users/rishii/ChrioShiro/frontend/src/services/api.js#L175-L231), the `ReadableStream` reader continuously decodes byte buffers, splits on `\n`, identifies `event:` and `data:`, and invokes callbacks:
+    - `onSources(sources)`: Renders citation badges (subject, document name, page number, similarity score) in the assistant message bubble.
+    - `onToken(token)`: Progressively concatenates tokens into the active message string in React state.
+    - `onDone()`: Signals the completion of streaming.
+23. **Markdown & KaTeX AST Sanitation**: In [`MessageItem.jsx:38-141`](file:///Users/rishii/ChrioShiro/frontend/src/components/MessageItem.jsx#L38-L141), `preprocessMarkdown()` runs 10 sequential AST cleanup rules before passing content to `react-markdown`:
+    - Fixes glued closing `$$` tags attached to words.
+    - Detects un-delimited LaTeX environments (e.g. `\begin{cases}`, `\begin{matrix}`, `\begin{aligned}`) and inserts opening/closing `$$\n...\n$$` blocks.
+    - Strips leading Markdown blockquote markers (`>`) from inside math equations to prevent KaTeX syntax crashes.
+    - Ensures clean newlines around display equations, Mermaid fences, and Markdown headers (`###`).
+24. **Visual & Diagram Rendering**:
+    - Mathematical expressions are rendered via `rehype-katex` with HTML/MathML math markup.
+    - Fenced blocks tagged ` ```mermaid ` are intercepted by [`MermaidDiagram.jsx`](file:///Users/rishii/ChrioShiro/frontend/src/components/MermaidDiagram.jsx), generating dynamic vector SVG flowcharts and mindmaps.
+25. **Persistent Session Storage**: When `onDone()` fires, `saveThreadMessages()` ([`api.js:39-83`](file:///Users/rishii/ChrioShiro/frontend/src/services/api.js#L39-L83)) writes the entire message list, thread title, subject, and timestamp to browser `localStorage` under key `shiro_user_threads_v2`.
 
 ---
 

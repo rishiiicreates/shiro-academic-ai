@@ -17,7 +17,7 @@ WORKDIR /app
 COPY sidecar/requirements.txt /app/sidecar/requirements.txt
 RUN pip install --no-cache-dir -r /app/sidecar/requirements.txt
 COPY sidecar/ /app/sidecar/
-COPY --from=backend-builder /build/target/chiroshiro-backend-1.0.0.jar /app/backend.jar
+COPY --from=backend-builder /build/target/shiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh

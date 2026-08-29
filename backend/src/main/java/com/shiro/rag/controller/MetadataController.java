@@ -29,7 +29,7 @@ public class MetadataController {
     public Map<String, Object> health() {
         return Map.of(
                 "status", "ok",
-                "service", "chiroshiro-backend",
+                "service", "shiro-backend",
                 "framework", "Spring WebFlux Reactive",
                 "geminiModel", "gemini-3.6-flash"
         );

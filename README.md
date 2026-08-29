@@ -1,4 +1,4 @@
-# 🎓 ChiroShiro (Shiro) — University Coursework & Academic Syllabus RAG System
+# 🎓 Shiro — University Coursework & Academic Syllabus RAG System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3%20WebFlux-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -65,9 +65,9 @@ Built by [**rishiicreates**](https://rishiicreates.vercel.app/)
 
 ## 🌟 Executive Summary
 
-**ChiroShiro** (or simply **Shiro**) is an intelligent academic coursework assistant and retrieval-augmented generation (RAG) system engineered specifically for university engineering and science curricula (modeled on the SRM Institute of Science and Technology syllabus).
+**Shiro** is an intelligent academic coursework assistant and retrieval-augmented generation (RAG) system engineered specifically for university engineering and science curricula (modeled on the SRM Institute of Science and Technology syllabus).
 
-Traditional AI chatbots suffer from hallucinations, vague generalities, out-of-date answers, and a lack of grounding in official university unit distributions and past examination patterns. **ChiroShiro** solves this by uniting:
+Traditional AI chatbots suffer from hallucinations, vague generalities, out-of-date answers, and a lack of grounding in official university unit distributions and past examination patterns. **Shiro** solves this by uniting:
 
 1. **Local, CPU-Optimized Dense Embeddings**: Utilizing `fastembed` ONNX inference with `BAAI/bge-small-en-v1.5` over a pre-indexed vector corpus of **95,672+ chunks** across **68 subjects** and **8 semesters**.
 2. **Deterministic SQLite FTS5 Hybrid Search**: Full-text keyword search and BM25 relevance ranking across an authentic database of **17,000+ past year university exam questions (PYQs)** and complete question papers (CT-1, CT-2, End-Semester 2018–2025).
@@ -676,7 +676,7 @@ python sidecar_app.py
 ```bash
 cd backend
 mvn clean package -DskipTests
-java -jar target/chiroshiro-backend-1.0.0.jar
+java -jar target/shiro-backend-1.0.0.jar
 ```
 *Health Check:* `curl http://127.0.0.1:8080/api/health`
 
@@ -718,7 +718,7 @@ WORKDIR /app
 COPY sidecar/requirements.txt /app/sidecar/requirements.txt
 RUN pip install --no-cache-dir -r /app/sidecar/requirements.txt
 COPY sidecar/ /app/sidecar/
-COPY --from=backend-builder /build/target/chiroshiro-backend-1.0.0.jar /app/backend.jar
+COPY --from=backend-builder /build/target/shiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
@@ -733,17 +733,17 @@ ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 ```bash
 # Build Docker image
-docker build -t chiroshiro-academic-ai .
+docker build -t shiro-academic-ai .
 
 # Run container with environment variable
 docker run -d \
   -p 8080:8080 \
   -e GEMINI_API_KEY="your_google_gemini_api_key" \
-  --name chiroshiro \
-  chiroshiro-academic-ai
+  --name shiro \
+  shiro-academic-ai
 
 # Check container logs
-docker logs -f chiroshiro
+docker logs -f shiro
 ```
 
 ---
@@ -774,7 +774,7 @@ docker logs -f chiroshiro
 
 ### Test Harness & Automated Suites
 
-ChiroShiro includes two test harnesses to verify retrieval quality, grounding accuracy, formatting compliance, and syllabus boundaries:
+Shiro includes two test harnesses to verify retrieval quality, grounding accuracy, formatting compliance, and syllabus boundaries:
 
 1. **`eval/eval_suite.py`**: Automated 10-point benchmark verifying in-scope concept accuracy, syllabus bounding, and out-of-scope question refusal.
 2. **`eval/professor_eval_suite.py`**: Academic rigor benchmark verifying:
@@ -794,7 +794,7 @@ python3 eval/eval_suite.py
 
 ```
 ======================================================================
-CHIROSHIRO — Academic Syllabus RAG Evaluation Suite
+SHIRO — Academic Syllabus RAG Evaluation Suite
 ======================================================================
 
 [1/10] eval_01 (In-Scope): Priority Scheduling in OS .......... [PASSED] (1.42s)
@@ -821,7 +821,7 @@ EVALUATION SUMMARY: 10/10 tests passed (100.0% Grounding & Refusal Rate)
 
 ## 📚 Curriculum Coverage
 
-ChiroShiro encompasses courses across **Computer Science, Data Science, AI/ML, Electrical, Mechanical, Biotechnology, and Applied Sciences**:
+Shiro encompasses courses across **Computer Science, Data Science, AI/ML, Electrical, Mechanical, Biotechnology, and Applied Sciences**:
 
 ```
 ├── Computer Science & Software Engineering

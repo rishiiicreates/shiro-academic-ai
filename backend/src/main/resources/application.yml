@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: chiroshiro-backend
+    name: shiro-backend
   main:
     web-application-type: reactive
 

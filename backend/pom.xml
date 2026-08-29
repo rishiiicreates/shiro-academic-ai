@@ -10,10 +10,10 @@
         <relativePath/>
     </parent>
     <groupId>com.shiro</groupId>
-    <artifactId>chiroshiro-backend</artifactId>
+    <artifactId>shiro-backend</artifactId>
     <version>1.0.0</version>
-    <name>chiroshiro-backend</name>
-    <description>Spring Boot WebFlux RAG Backend for ChiroShiro Academic Assistant</description>
+    <name>shiro-backend</name>
+    <description>Spring Boot WebFlux RAG Backend for Shiro Academic Assistant</description>
     
     <properties>
         <java.version>17</java.version>
