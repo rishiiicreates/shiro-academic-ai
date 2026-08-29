@@ -577,6 +577,30 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
+  contain: layout style;
+}
+
+.katex-display {
+  min-height: 2em;
+  margin: 0.75em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 15px;
+  background-color: var(--accent-warm, #f59e0b);
+  margin-left: 4px;
+  vertical-align: -2px;
+  border-radius: 1px;
+  animation: cursorBlink 0.8s ease-in-out infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .message-row.user-row {
@@ -876,6 +900,53 @@ tr:nth-child(even) td {
   font-size: 12.5px;
 }
 
+/* Streaming Diagram Placeholder Card (Eliminates streaming jitter) */
+.mermaid-streaming-card {
+  min-height: 140px;
+  background-color: var(--bg-surface);
+  border: 2px dashed var(--border-color);
+  opacity: 0.92;
+}
+
+.mermaid-streaming-badge {
+  font-family: var(--font-doodle);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.mermaid-streaming-placeholder {
+  width: 100%;
+  padding: 18px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.mermaid-pulse-bar {
+  width: 75%;
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-subtle) 50%, var(--bg-subtle) 75%);
+  background-size: 200% 100%;
+  animation: shimmerPulse 1.6s infinite ease-in-out;
+}
+
+.mermaid-pulse-bar.short {
+  width: 45%;
+  height: 12px;
+}
+
+@keyframes shimmerPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Code Block Wrapper */
 .code-block-wrapper {
   background-color: var(--code-bg);
@@ -1102,6 +1173,7 @@ tr:nth-child(even) td {
   cursor: pointer;
   box-shadow: 1px 1px 0px var(--border-color);
   transition: all 0.12s ease;
+  pointer-events: auto;
 }
 
 .subject-pill-clear-btn:hover {

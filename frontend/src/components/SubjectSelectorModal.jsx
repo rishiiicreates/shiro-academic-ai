@@ -174,6 +174,31 @@ export default function SubjectSelectorModal({
             </div>
           ) : (
             <div className="subject-picker-grid">
+              {/* All Subjects Default Option */}
+              {(!searchQuery.trim() || 'all subjects'.includes(searchQuery.toLowerCase().trim())) && selectedSem === 'All' && (
+                <button
+                  type="button"
+                  className={`subject-picker-card ${!subject ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSubject('');
+                    onClose();
+                  }}
+                >
+                  <div className="subject-picker-card-inner">
+                    <div className="subject-card-details">
+                      <span className="subject-picker-name" title="All Subjects">
+                        ✨ All Subjects (General Search)
+                      </span>
+                      <span className="subject-card-sem-tag">All Semesters</span>
+                    </div>
+                    {!subject && (
+                      <div className="subject-selected-check">
+                        <Check size={14} />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              )}
               {filteredSubjects.map((sub) => {
                 const isSelected = subject === sub.name;
                 return (

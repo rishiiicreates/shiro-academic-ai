@@ -21,10 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatController {
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
-    private final RetrievalService retrievalService;
-    private final GeminiStreamService geminiStreamService;
-    private final ObjectMapper objectMapper;
-
     private static final String SYSTEM_INSTRUCTION = """
             You are Shiro — a brilliant, effortlessly sharp friend who happens to understand math, engineering, algorithms, and SRM coursework inside out.
 
@@ -108,12 +104,19 @@ public class ChatController {
                 - For greetings, pleasantries, or chitchat, respond warmly and briefly without dumping unsolicited exam questions, past topics, or whole lectures.
             """;
 
+    private final RetrievalService retrievalService;
+    private final GeminiStreamService geminiStreamService;
+    private final ObjectMapper objectMapper;
+    private final com.shiro.rag.config.AppProperties properties;
+
     public ChatController(RetrievalService retrievalService,
                           GeminiStreamService geminiStreamService,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          com.shiro.rag.config.AppProperties properties) {
         this.retrievalService = retrievalService;
         this.geminiStreamService = geminiStreamService;
         this.objectMapper = objectMapper;
+        this.properties = properties;
     }
 
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -140,8 +143,63 @@ public class ChatController {
         String studyMode = request.getStudyMode() != null ? request.getStudyMode().trim().toLowerCase() : "all";
         String effectiveCategory = request.getCategory();
 
+        // 1. Auto-detect / inherit active subject from request, current query, or conversation history
+        String effectiveSubject = request.getSubject();
+        if (!isGreeting && (effectiveSubject == null || effectiveSubject.trim().isEmpty())) {
+            effectiveSubject = detectSubjectFromText(userMessage);
+            // Inherit from prior turns / sources in this thread
+            if (effectiveSubject == null && priorMessages != null && !priorMessages.isEmpty()) {
+                // A. Check prior user messages backwards
+                for (int i = priorMessages.size() - 1; i >= 0; i--) {
+                    MessageRecord msg = priorMessages.get(i);
+                    if ("user".equalsIgnoreCase(msg.getRole()) && msg.getContent() != null) {
+                        String detected = detectSubjectFromText(msg.getContent());
+                        if (detected != null) {
+                            effectiveSubject = detected;
+                            break;
+                        }
+                    }
+                }
+                // B. Check prior assistant messages backwards
+                if (effectiveSubject == null) {
+                    for (int i = priorMessages.size() - 1; i >= 0; i--) {
+                        MessageRecord msg = priorMessages.get(i);
+                        if ("assistant".equalsIgnoreCase(msg.getRole()) && msg.getContent() != null) {
+                            String detected = detectSubjectFromText(msg.getContent());
+                            if (detected != null) {
+                                effectiveSubject = detected;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // C. Check prior source citation metadata
+                if (effectiveSubject == null) {
+                    for (int i = priorMessages.size() - 1; i >= 0; i--) {
+                        MessageRecord msg = priorMessages.get(i);
+                        if (msg.getSources() != null && !msg.getSources().isEmpty()) {
+                            for (RetrievedChunk rc : msg.getSources()) {
+                                if (rc.getMetadata() != null && rc.getMetadata().getSubject() != null && !rc.getMetadata().getSubject().trim().isEmpty()) {
+                                    String subj = rc.getMetadata().getSubject().trim();
+                                    if (!"General".equalsIgnoreCase(subj) && !"All".equalsIgnoreCase(subj)) {
+                                        effectiveSubject = subj;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (effectiveSubject != null) break;
+                    }
+                }
+            }
+        }
+
         // Prepare primary retrieval request with context enrichment for follow-up inquiries
-        String retrievalQuery = isGreeting ? userMessage : enrichRetrievalQueryWithHistory(userMessage, priorMessages);
+        String retrievalQuery = isGreeting ? userMessage : enrichRetrievalQueryWithHistory(userMessage, priorMessages, effectiveSubject);
+        if (effectiveSubject == null && !isGreeting) {
+            effectiveSubject = detectSubjectFromText(retrievalQuery);
+        }
+
         boolean isPyqQuery = !isGreeting && (isPyqRelated(userMessage) || isPyqRelated(retrievalQuery));
 
         // Preserve explicit study mode selected by the student
@@ -155,37 +213,6 @@ public class ChatController {
             // Only auto-switch to pyqs if studyMode was generic ('all')
             studyMode = "pyqs";
             effectiveCategory = "PYQs";
-        }
-
-        // Auto-detect subject from message/context/thread history if not explicitly chosen
-        String effectiveSubject = request.getSubject();
-        if (!isGreeting && (effectiveSubject == null || effectiveSubject.trim().isEmpty())) {
-            effectiveSubject = detectSubjectFromText(userMessage);
-            if (effectiveSubject == null) {
-                effectiveSubject = detectSubjectFromText(retrievalQuery);
-            }
-            // Inherit from prior turns / sources in this thread
-            if (effectiveSubject == null && priorMessages != null && !priorMessages.isEmpty()) {
-                for (int i = priorMessages.size() - 1; i >= 0; i--) {
-                    MessageRecord msg = priorMessages.get(i);
-                    if ("user".equalsIgnoreCase(msg.getRole()) && msg.getContent() != null) {
-                        String detected = detectSubjectFromText(msg.getContent());
-                        if (detected != null) {
-                            effectiveSubject = detected;
-                            break;
-                        }
-                    }
-                    if (msg.getSources() != null && !msg.getSources().isEmpty()) {
-                        for (RetrievedChunk rc : msg.getSources()) {
-                            if (rc.getMetadata() != null && rc.getMetadata().getSubject() != null && !rc.getMetadata().getSubject().trim().isEmpty()) {
-                                effectiveSubject = rc.getMetadata().getSubject().trim();
-                                break;
-                            }
-                        }
-                        if (effectiveSubject != null) break;
-                    }
-                }
-            }
         }
 
         RetrieveRequest primaryRetrieveRequest = new RetrieveRequest(
@@ -202,7 +229,7 @@ public class ChatController {
                 : retrievalService.retrieve(primaryRetrieveRequest).onErrorReturn(new RetrieveResponse(Collections.emptyList(), 0));
 
         // Determine if query is exam/PYQ related
-        boolean needsPyqs = !isGreeting && ("pyqs".equals(studyMode) || isPyqQuery || "PYQs".equalsIgnoreCase(effectiveCategory));
+        boolean needsPyqs = !isGreeting && ("pyqs".equals(studyMode) || (isPyqQuery && !"notes".equals(studyMode) && !"learn_basics".equals(studyMode)));
         Mono<List<RetrievedChunk>> pyqRetrieveMono = needsPyqs
                 ? retrievalService.retrieve(new RetrieveRequest(retrievalQuery, 5, null, effectiveSubject, "PYQs", "pyqs"))
                     .map(RetrieveResponse::getChunks)
@@ -289,7 +316,15 @@ public class ChatController {
                             })
                             .onErrorResume(err -> {
                                 log.error("Gemini stream error: {}", err.getMessage());
-                                return Flux.just(createSseEvent(ChatEvent.error(threadId, "Streaming error: " + err.getMessage())));
+                                String userFriendlyMessage;
+                                if (err.getMessage() != null && err.getMessage().contains("GEMINI_API_KEY")) {
+                                    userFriendlyMessage = "⚠️ Gemini API key is missing. Please set `GEMINI_API_KEY=your_key` in `/Users/rishii/ChrioShiro/.env` (or in your environment) and restart the application.";
+                                } else if (err.getMessage() != null && err.getMessage().contains("403")) {
+                                    userFriendlyMessage = "⚠️ Gemini API returned 403 Forbidden. Please verify that your `GEMINI_API_KEY` is valid and has permissions for model `" + properties.getGeminiModel() + "`.";
+                                } else {
+                                    userFriendlyMessage = "Streaming error: " + err.getMessage();
+                                }
+                                return Flux.just(createSseEvent(ChatEvent.error(threadId, userFriendlyMessage)));
                             });
 
                     // Event Last: Emit completion event
@@ -316,60 +351,93 @@ public class ChatController {
                 || q.matches("^(thank\\s+you|thanks|thanks\\s+a\\s+lot|thank\\s+you\\s+so\\s+much|thx|cool|nice|ok|okay|got\\s+it|bye|goodbye|see\\s+you|cya)$");
     }
 
-    private static final Map<String, String> SUBJECT_ALIASES = new HashMap<>() {{
-        put("dsa", "Data Structures And Algorithm");
-        put("data structures", "Data Structures And Algorithm");
-        put("data structure", "Data Structures And Algorithm");
-        put("data structures and algorithms", "Data Structures And Algorithm");
-        put("os", "Operating Systems");
-        put("operating system", "Operating Systems");
-        put("operating systems", "Operating Systems");
-        put("dbms", "Database Management Systems");
-        put("database", "Database Management Systems");
-        put("database management", "Database Management Systems");
-        put("cn", "Computer Networks");
-        put("computer networks", "Computer Networks");
-        put("coa", "Computer Organization And Architecture");
-        put("cao", "Computer Organization And Architecture");
-        put("daa", "Design And Analysis Of Algorithms");
-        put("ada", "Design And Analysis Of Algorithms");
-        put("algorithms", "Design And Analysis Of Algorithms");
-        put("algorithm", "Design And Analysis Of Algorithms");
-        put("pps", "Programming For Problem Solving");
-        put("c programming", "Programming For Problem Solving");
-        put("cla", "Calculus And Linear Algebra");
-        put("linear algebra", "Calculus And Linear Algebra");
-        put("calculus", "Calculus And Linear Algebra");
-        put("maths 1", "Calculus And Linear Algebra");
-        put("m1", "Calculus And Linear Algebra");
-        put("acca", "Advanced Calculus And Complex Analysis");
-        put("maths 2", "Advanced Calculus And Complex Analysis");
-        put("m2", "Advanced Calculus And Complex Analysis");
+    private static final Map<String, String> SUBJECT_ALIASES = new LinkedHashMap<>() {{
+        // Mathematics
+        put("discrete mathematics", "Discrete Mathematics");
+        put("discrete math", "Discrete Mathematics");
+        put("discrete", "Discrete Mathematics");
+        put("dm", "Discrete Mathematics");
+        put("maths 5", "Discrete Mathematics");
+        put("math 5", "Discrete Mathematics");
+        put("m5", "Discrete Mathematics");
+        put("pigeonhole principle", "Discrete Mathematics");
+        put("pigeonhole", "Discrete Mathematics");
+        put("recurrence relation", "Discrete Mathematics");
+        put("recurrence relations", "Discrete Mathematics");
+        put("generating functions", "Discrete Mathematics");
+        put("predicate logic", "Discrete Mathematics");
+        put("propositional logic", "Discrete Mathematics");
+
+        put("transforms and boundary value problems", "Transforms And Boundary Value Problems");
+        put("transforms and bvp", "Transforms And Boundary Value Problems");
+        put("transforms", "Transforms And Boundary Value Problems");
         put("tpde", "Transforms And Boundary Value Problems");
         put("maths 3", "Transforms And Boundary Value Problems");
+        put("math 3", "Transforms And Boundary Value Problems");
         put("m3", "Transforms And Boundary Value Problems");
-        put("pqt", "Probability And Queueing Theory");
+        put("fourier series", "Transforms And Boundary Value Problems");
+        put("fourier transform", "Transforms And Boundary Value Problems");
+        put("fourier transforms", "Transforms And Boundary Value Problems");
+        put("laplace transform", "Transforms And Boundary Value Problems");
+        put("laplace transforms", "Transforms And Boundary Value Problems");
+        put("laplace", "Transforms And Boundary Value Problems");
+        put("z transform", "Transforms And Boundary Value Problems");
+        put("boundary value problems", "Transforms And Boundary Value Problems");
+        put("partial differential equations", "Transforms And Boundary Value Problems");
+        put("pde", "Transforms And Boundary Value Problems");
+
+        put("calculus and linear algebra", "Calculus And Linear Algebra");
+        put("linear algebra", "Calculus And Linear Algebra");
+        put("calculus", "Calculus And Linear Algebra");
+        put("cla", "Calculus And Linear Algebra");
+        put("maths 1", "Calculus And Linear Algebra");
+        put("math 1", "Calculus And Linear Algebra");
+        put("m1", "Calculus And Linear Algebra");
+        put("cayley hamilton", "Calculus And Linear Algebra");
+        put("cayley-hamilton", "Calculus And Linear Algebra");
+        put("eigenvalue", "Calculus And Linear Algebra");
+        put("eigenvalues", "Calculus And Linear Algebra");
+        put("matrices", "Calculus And Linear Algebra");
+
+        put("advanced calculus and complex analysis", "Advanced Calculus And Complex Analysis");
+        put("advanced calculus", "Advanced Calculus And Complex Analysis");
+        put("complex analysis", "Advanced Calculus And Complex Analysis");
+        put("acca", "Advanced Calculus And Complex Analysis");
+        put("maths 2", "Advanced Calculus And Complex Analysis");
+        put("math 2", "Advanced Calculus And Complex Analysis");
+        put("m2", "Advanced Calculus And Complex Analysis");
+        put("cauchy riemann", "Advanced Calculus And Complex Analysis");
+        put("contour integration", "Advanced Calculus And Complex Analysis");
+        put("residue theorem", "Advanced Calculus And Complex Analysis");
+        put("laurent series", "Advanced Calculus And Complex Analysis");
+
+        put("probability and queueing theory", "Probability And Queueing Theory");
+        put("probability & applied statistics", "Probability And Queueing Theory");
+        put("probability and statistics", "Probability And Queueing Theory");
         put("probability", "Probability And Queueing Theory");
+        put("queueing theory", "Probability And Queueing Theory");
+        put("pqt", "Probability And Queueing Theory");
+        put("maths 4", "Probability And Queueing Theory");
+        put("math 4", "Probability And Queueing Theory");
+        put("m4", "Probability And Queueing Theory");
+        put("markov chain", "Probability And Queueing Theory");
+        put("poisson process", "Probability And Queueing Theory");
+
+        put("numerical methods & analysis", "Numerical Methods & Analysis");
+        put("numerical methods and analysis", "Numerical Methods & Analysis");
+        put("numerical methods", "Numerical Methods & Analysis");
         put("nm", "Numerical Methods & Analysis");
         put("nma", "Numerical Methods & Analysis");
-        put("ai", "Artificial Intelligence");
-        put("ml", "Machine Learning");
-        put("sepm", "Software Engineering & Project Management (SEPM)");
-        put("dld", "Digital Logic Design");
-        put("cd", "Compiler Design");
-        put("fswd", "Full Stack Web Development");
-        put("oodp", "Object Oriented Design And Programming");
-        put("oops", "Object Oriented Design And Programming");
-        put("foe", "Fundamental Of Economics (FOE)");
-        put("cga", "CGA");
-        put("comp bio", "Introduction To Computational Biology");
-        put("chem", "Chemistry");
-        put("physics", "Semiconductor Physics And Computational Methods");
-        put("eee", "Electrical And Electronics Engineering");
-        put("cell bio", "Cell Biology");
-        put("cell biology", "Cell Biology");
+        put("newton raphson", "Numerical Methods & Analysis");
+        put("gauss elimination", "Numerical Methods & Analysis");
+        put("runge kutta", "Numerical Methods & Analysis");
 
-        // Algorithm & Data Structure Concepts
+        // Data Structures & Algorithms
+        put("data structures and algorithm", "Data Structures And Algorithm");
+        put("data structures and algorithms", "Data Structures And Algorithm");
+        put("data structures", "Data Structures And Algorithm");
+        put("data structure", "Data Structures And Algorithm");
+        put("dsa", "Data Structures And Algorithm");
         put("binary search", "Data Structures And Algorithm");
         put("binary search tree", "Data Structures And Algorithm");
         put("bst", "Data Structures And Algorithm");
@@ -379,19 +447,27 @@ public class ChatController {
         put("queue", "Data Structures And Algorithm");
         put("quick sort", "Data Structures And Algorithm");
         put("merge sort", "Data Structures And Algorithm");
+
+        put("design and analysis of algorithms", "Design And Analysis Of Algorithms");
+        put("algorithm analysis", "Design And Analysis Of Algorithms");
+        put("algorithms", "Design And Analysis Of Algorithms");
+        put("algorithm", "Design And Analysis Of Algorithms");
+        put("daa", "Design And Analysis Of Algorithms");
+        put("ada", "Design And Analysis Of Algorithms");
         put("dijkstra", "Design And Analysis Of Algorithms");
         put("bellman ford", "Design And Analysis Of Algorithms");
         put("dynamic programming", "Design And Analysis Of Algorithms");
         put("greedy", "Design And Analysis Of Algorithms");
         put("divide and conquer", "Design And Analysis Of Algorithms");
 
-        // Operating Systems & DBMS Concepts
+        // Systems & Core CS
+        put("operating systems", "Operating Systems");
+        put("operating system", "Operating Systems");
+        put("os", "Operating Systems");
         put("file system", "Operating Systems");
         put("file systems", "Operating Systems");
         put("file allocation", "Operating Systems");
         put("file management", "Operating Systems");
-        put("file processing system", "Database Management Systems");
-        put("file processing systems", "Database Management Systems");
         put("priority scheduling", "Operating Systems");
         put("process scheduling", "Operating Systems");
         put("process states", "Operating Systems");
@@ -400,27 +476,345 @@ public class ChatController {
         put("deadlocks", "Operating Systems");
         put("paging", "Operating Systems");
         put("virtual memory", "Operating Systems");
+        put("semaphores", "Operating Systems");
+        put("bankers algorithm", "Operating Systems");
+
+        put("database management systems", "Database Management Systems");
+        put("database management system", "Database Management Systems");
+        put("database management", "Database Management Systems");
+        put("database", "Database Management Systems");
+        put("dbms", "Database Management Systems");
+        put("file processing system", "Database Management Systems");
+        put("file processing systems", "Database Management Systems");
         put("acid properties", "Database Management Systems");
         put("acid property", "Database Management Systems");
         put("relational algebra", "Database Management Systems");
         put("normalization", "Database Management Systems");
         put("er model", "Database Management Systems");
 
-        // Mathematics Concepts
-        put("cayley hamilton", "Calculus And Linear Algebra");
-        put("cayley-hamilton", "Calculus And Linear Algebra");
-        put("eigenvalue", "Calculus And Linear Algebra");
-        put("eigenvalues", "Calculus And Linear Algebra");
-        put("fourier series", "Transforms And Boundary Value Problems");
-        put("laplace", "Transforms And Boundary Value Problems");
+        put("computer networks", "Computer Networks");
+        put("computer network", "Computer Networks");
+        put("cn", "Computer Networks");
+        put("osi model", "Computer Networks");
+        put("tcp ip", "Computer Networks");
+
+        put("computer organization and architecture", "Computer Organization And Architecture");
+        put("computer organization", "Computer Organization And Architecture");
+        put("computer architecture", "Computer Organization And Architecture");
+        put("coa", "Computer Organization And Architecture");
+        put("cao", "Computer Organization And Architecture");
+
+        put("digital logic design", "Digital Logic Design");
+        put("digital logic", "Digital Logic Design");
+        put("dld", "Digital Logic Design");
+
+        put("compiler design", "Compiler Design");
+        put("compiler", "Compiler Design");
+        put("cd", "Compiler Design");
+
+        put("formal language and automata", "Formal Language And Automata");
+        put("theory of computation", "Formal Language And Automata");
+        put("automata", "Formal Language And Automata");
+        put("toc", "Formal Language And Automata");
+        put("flata", "Formal Language And Automata");
+
+        // Programming & Web
+        put("programming for problem solving", "Programming For Problem Solving");
+        put("c programming", "Programming For Problem Solving");
+        put("c language", "Programming For Problem Solving");
+        put("pps", "Programming For Problem Solving");
+        put("21csc101t", "Programming For Problem Solving");
+
+        put("object oriented design and programming", "Object Oriented Design And Programming");
+        put("object oriented programming", "Object Oriented Design And Programming");
+        put("oodp", "Object Oriented Design And Programming");
+        put("oops", "Object Oriented Design And Programming");
+        put("oop", "Object Oriented Design And Programming");
+        put("java", "Object Oriented Design And Programming");
+        put("21csc202j", "Object Oriented Design And Programming");
+
+        put("full stack web development", "Full Stack Web Development");
+        put("full stack", "Full Stack Web Development");
+        put("web dev", "Full Stack Web Development");
+        put("fswd", "Full Stack Web Development");
+        put("21csc305p", "Full Stack Web Development");
+
+        put("advanced programming practice", "Advanced Programming Practice");
+        put("advanced programming", "Advanced Programming Practice");
+        put("advance programming", "Advanced Programming Practice");
+        put("advance programing", "Advanced Programming Practice");
+        put("advanced programing", "Advanced Programming Practice");
+        put("adv programming", "Advanced Programming Practice");
+        put("adv programing", "Advanced Programming Practice");
+        put("adv java", "Advanced Programming Practice");
+        put("advanced java", "Advanced Programming Practice");
+        put("app java", "Advanced Programming Practice");
+        put("app", "Advanced Programming Practice");
+        put("21csc203p", "Advanced Programming Practice");
+        put("18csc207j", "Advanced Programming Practice");
+
+        // Course Codes & Mathematical Math Courses
+        put("21mab101t", "Calculus And Linear Algebra");
+        put("21mab102t", "Advanced Calculus And Complex Analysis");
+        put("21mab201t", "Transforms And Boundary Value Problems");
+        put("21mab302t", "Discrete Mathematics");
+        put("21mab401t", "Probability And Queueing Theory");
+        put("21mab501t", "Numerical Methods & Analysis");
+        put("21csc201j", "Data Structures And Algorithm");
+        put("21csc204j", "Design And Analysis Of Algorithms");
+        put("21csc301t", "Formal Language And Automata");
+        put("21csc302t", "Database Management Systems");
+        put("21csc303t", "Computer Networks");
+        put("21csc304t", "Compiler Design");
+
+        // AI, ML, Data Science
+        put("artificial intelligence", "Artificial Intelligence");
+        put("ai", "Artificial Intelligence");
+        put("machine learning", "Machine Learning");
+        put("ml", "Machine Learning");
+        put("data science", "Data Science");
+        put("foundation of data science", "Foundation of Data Science (FDS)");
+        put("fds", "Foundation of Data Science (FDS)");
+
+        // Engineering, Sciences & Others
+        put("software engineering & project management", "Software Engineering & Project Management (SEPM)");
+        put("software engineering and project management", "Software Engineering & Project Management (SEPM)");
+        put("software engineering", "Software Engineering & Project Management (SEPM)");
+        put("software project management", "Software Engineering & Project Management (SEPM)");
+        put("software management and economics", "Software Engineering & Project Management (SEPM)");
+        put("software management", "Software Engineering & Project Management (SEPM)");
+        put("sepm", "Software Engineering & Project Management (SEPM)");
+        put("spm", "Software Engineering & Project Management (SEPM)");
+        put("cocomo", "Software Engineering & Project Management (SEPM)");
+        put("cocomo ii", "Software Engineering & Project Management (SEPM)");
+        put("fundamental of economics", "Fundamental Of Economics (FOE)");
+        put("economics", "Fundamental Of Economics (FOE)");
+        put("foe", "Fundamental Of Economics (FOE)");
+        put("cga", "CGA");
+        put("introduction to computational biology", "Introduction To Computational Biology");
+        put("computational biology", "Introduction To Computational Biology");
+        put("comp bio", "Introduction To Computational Biology");
+        put("physical and analytical chemistry", "Physical And Analytical Chemistry");
+        put("chemistry", "Chemistry");
+        put("chem", "Chemistry");
+        put("semiconductor physics and computational methods", "Semiconductor Physics And Computational Methods");
+        put("semiconductor physics", "Semiconductor Physics And Computational Methods");
+        put("physics", "Semiconductor Physics And Computational Methods");
+        put("electromagnetic physics", "Electromagnetic Physics");
+        put("electrical and electronics engineering", "Electrical And Electronics Engineering");
+        put("electrical", "Electrical And Electronics Engineering");
+        put("eee", "Electrical And Electronics Engineering");
+        put("cell biology", "Cell Biology");
+        put("cell bio", "Cell Biology");
+        put("biology", "Biology");
+        put("biochemistry", "Biochemistry");
+        put("design thinking and methodology", "Design Thinking And Methodology");
+        put("design thinking", "Design Thinking And Methodology");
+        put("dtm", "Design Thinking And Methodology");
+        put("solid state devices", "Solid State Devices");
+        put("ssd", "Solid State Devices");
+        put("electronic system and pcb design", "Electronic System And PCB Design");
+        put("pcb design", "Electronic System And PCB Design");
+        put("pcb", "Electronic System And PCB Design");
+        put("engineering mechanics", "Engineering Mechanics");
+        put("communicative english", "Communicative English");
+        put("english", "Communicative English");
+        put("social engineering", "Social Engineering");
+        put("philosophy of engineering", "Philosophy Of Engineering");
+        put("foreign languages", "Foreign Languages");
     }};
+
+    private static final Map<String, List<String>> SEMESTER_SUBJECTS = Map.of(
+        "Semester 1", List.of(
+            "Calculus And Linear Algebra", "Programming For Problem Solving", "Physical And Analytical Chemistry",
+            "Chemistry", "Cell Biology", "Biology", "Fundamental Of Economics (FOE)", "Philosophy Of Engineering",
+            "Introduction To Computational Biology", "Foreign Languages"
+        ),
+        "Semester 2", List.of(
+            "Advanced Calculus And Complex Analysis", "Object Oriented Design And Programming", "Electrical And Electronics Engineering",
+            "Semiconductor Physics And Computational Methods", "Electromagnetic Physics", "Electronic System And PCB Design",
+            "Engineering Mechanics", "Communicative English"
+        ),
+        "Semester 3", List.of(
+            "Transforms And Boundary Value Problems", "Numerical Methods & Analysis", "Data Structures And Algorithm",
+            "Operating Systems", "Computer Organization And Architecture", "Digital Logic Design",
+            "Advanced Programming Practice", "Biochemistry", "Design Thinking And Methodology",
+            "Electromagnetic Thoery And Interference", "Solid State Devices", "Foundation of Data Science (FDS)",
+            "Genetics And Cytogenetics", "Microbiology"
+        ),
+        "Semester 4", List.of(
+            "Probability And Queueing Theory", "Probability & Applied Statistics", "Database Management Systems",
+            "Design And Analysis Of Algorithms", "Artificial Intelligence", "CGA", "Cell Communication And Signaling",
+            "Bioprocess Engineering", "Molecular Biology", "Software Process", "Internet Of Things (IOT)", "Social Engineering"
+        ),
+        "Semester 5", List.of(
+            "Discrete Mathematics", "Computer Networks", "Full Stack Web Development", "Formal Language And Automata"
+        ),
+        "Semester 6", List.of(
+            "Compiler Design", "Data Science", "Software Engineering & Project Management (SEPM)"
+        )
+    );
+
+    private static final Map<String, Map<String, String>> SEMESTER_DOMAIN_MAP = Map.of(
+        "Semester 1", Map.ofEntries(
+            Map.entry("math", "Calculus And Linear Algebra"),
+            Map.entry("maths", "Calculus And Linear Algebra"),
+            Map.entry("mathematics", "Calculus And Linear Algebra"),
+            Map.entry("calculus", "Calculus And Linear Algebra"),
+            Map.entry("linear algebra", "Calculus And Linear Algebra"),
+            Map.entry("cla", "Calculus And Linear Algebra"),
+            Map.entry("programming", "Programming For Problem Solving"),
+            Map.entry("coding", "Programming For Problem Solving"),
+            Map.entry("c language", "Programming For Problem Solving"),
+            Map.entry("pps", "Programming For Problem Solving"),
+            Map.entry("chemistry", "Physical And Analytical Chemistry"),
+            Map.entry("chem", "Physical And Analytical Chemistry"),
+            Map.entry("biology", "Cell Biology"),
+            Map.entry("bio", "Cell Biology"),
+            Map.entry("economics", "Fundamental Of Economics (FOE)"),
+            Map.entry("foe", "Fundamental Of Economics (FOE)")
+        ),
+        "Semester 2", Map.ofEntries(
+            Map.entry("math", "Advanced Calculus And Complex Analysis"),
+            Map.entry("maths", "Advanced Calculus And Complex Analysis"),
+            Map.entry("mathematics", "Advanced Calculus And Complex Analysis"),
+            Map.entry("complex analysis", "Advanced Calculus And Complex Analysis"),
+            Map.entry("acca", "Advanced Calculus And Complex Analysis"),
+            Map.entry("programming", "Object Oriented Design And Programming"),
+            Map.entry("oops", "Object Oriented Design And Programming"),
+            Map.entry("oop", "Object Oriented Design And Programming"),
+            Map.entry("java", "Object Oriented Design And Programming"),
+            Map.entry("oodp", "Object Oriented Design And Programming"),
+            Map.entry("physics", "Semiconductor Physics And Computational Methods"),
+            Map.entry("electrical", "Electrical And Electronics Engineering"),
+            Map.entry("eee", "Electrical And Electronics Engineering"),
+            Map.entry("pcb", "Electronic System And PCB Design"),
+            Map.entry("english", "Communicative English")
+        ),
+        "Semester 3", Map.ofEntries(
+            Map.entry("math", "Transforms And Boundary Value Problems"),
+            Map.entry("maths", "Transforms And Boundary Value Problems"),
+            Map.entry("mathematics", "Transforms And Boundary Value Problems"),
+            Map.entry("tpde", "Transforms And Boundary Value Problems"),
+            Map.entry("transforms", "Transforms And Boundary Value Problems"),
+            Map.entry("numerical methods", "Numerical Methods & Analysis"),
+            Map.entry("dsa", "Data Structures And Algorithm"),
+            Map.entry("data structures", "Data Structures And Algorithm"),
+            Map.entry("os", "Operating Systems"),
+            Map.entry("operating systems", "Operating Systems"),
+            Map.entry("coa", "Computer Organization And Architecture"),
+            Map.entry("dld", "Digital Logic Design"),
+            Map.entry("digital logic", "Digital Logic Design"),
+            Map.entry("app", "Advanced Programming Practice"),
+            Map.entry("advanced programming", "Advanced Programming Practice"),
+            Map.entry("advance programming", "Advanced Programming Practice"),
+            Map.entry("advance programing", "Advanced Programming Practice"),
+            Map.entry("adv programming", "Advanced Programming Practice"),
+            Map.entry("fds", "Foundation of Data Science (FDS)")
+        ),
+        "Semester 4", Map.ofEntries(
+            Map.entry("math", "Probability And Queueing Theory"),
+            Map.entry("maths", "Probability And Queueing Theory"),
+            Map.entry("probability", "Probability And Queueing Theory"),
+            Map.entry("pqt", "Probability And Queueing Theory"),
+            Map.entry("dbms", "Database Management Systems"),
+            Map.entry("database", "Database Management Systems"),
+            Map.entry("daa", "Design And Analysis Of Algorithms"),
+            Map.entry("algorithms", "Design And Analysis Of Algorithms"),
+            Map.entry("ai", "Artificial Intelligence"),
+            Map.entry("cga", "CGA"),
+            Map.entry("iot", "Internet Of Things (IOT)")
+        ),
+        "Semester 5", Map.ofEntries(
+            Map.entry("math", "Discrete Mathematics"),
+            Map.entry("maths", "Discrete Mathematics"),
+            Map.entry("discrete", "Discrete Mathematics"),
+            Map.entry("dm", "Discrete Mathematics"),
+            Map.entry("cn", "Computer Networks"),
+            Map.entry("networks", "Computer Networks"),
+            Map.entry("web dev", "Full Stack Web Development"),
+            Map.entry("fswd", "Full Stack Web Development"),
+            Map.entry("toc", "Formal Language And Automata"),
+            Map.entry("flata", "Formal Language And Automata"),
+            Map.entry("automata", "Formal Language And Automata")
+        ),
+        "Semester 6", Map.ofEntries(
+            Map.entry("compiler", "Compiler Design"),
+            Map.entry("cd", "Compiler Design"),
+            Map.entry("data science", "Data Science"),
+            Map.entry("sepm", "Software Engineering & Project Management (SEPM)"),
+            Map.entry("software engineering", "Software Engineering & Project Management (SEPM)")
+        )
+    );
+
+    private String normalizeAcademicText(String text) {
+        if (text == null) return "";
+        String t = text.toLowerCase().replaceAll("[^a-zA-Z0-9\\s]", " ");
+        t = t.replaceAll("\\badvance\\b", "advanced")
+             .replaceAll("\\bprograming\\b", "programming")
+             .replaceAll("\\balgorithim\\b|\\balgorythm\\b|\\balgos\\b", "algorithm")
+             .replaceAll("\\bcalculas\\b", "calculus")
+             .replaceAll("\\bprobablity\\b|\\bprobalility\\b", "probability")
+             .replaceAll("\\bdescrete\\b", "discrete")
+             .replaceAll("\\boperatng\\b|\\boprating\\b", "operating")
+             .replaceAll("\\bstructur\\b|\\bstructres\\b", "structure")
+             .replaceAll("\\bnetwrok\\b|\\bnetwrk\\b", "network");
+        return t.replaceAll("\\s+", " ").trim();
+    }
+
+    private String extractSemester(String text) {
+        if (text == null || text.trim().isEmpty()) return null;
+        String lower = text.toLowerCase();
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+                "(?:sem(?:ester)?\\s*([1-8])|([1-8])(?:st|nd|rd|th)?\\s+sem(?:ester)?|\\bs([1-8])\\b)"
+        );
+        java.util.regex.Matcher m = p.matcher(lower);
+        if (m.find()) {
+            String num = m.group(1) != null ? m.group(1) : (m.group(2) != null ? m.group(2) : m.group(3));
+            return "Semester " + num;
+        }
+        return null;
+    }
 
     private String detectSubjectFromText(String text) {
         if (text == null || text.trim().isEmpty()) return null;
         String lower = text.toLowerCase();
-        for (Map.Entry<String, String> entry : SUBJECT_ALIASES.entrySet()) {
+        String norm = normalizeAcademicText(text);
+        String detectedSem = extractSemester(lower);
+
+        // 1. If a semester is identified, match against semester domain taxonomy first
+        if (detectedSem != null && SEMESTER_DOMAIN_MAP.containsKey(detectedSem)) {
+            Map<String, String> domainMap = SEMESTER_DOMAIN_MAP.get(detectedSem);
+            List<Map.Entry<String, String>> sortedDomainEntries = new ArrayList<>(domainMap.entrySet());
+            sortedDomainEntries.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
+
+            for (Map.Entry<String, String> entry : sortedDomainEntries) {
+                String pattern = "\\b" + java.util.regex.Pattern.quote(entry.getKey()) + "\\b";
+                if (java.util.regex.Pattern.compile(pattern).matcher(lower).find()
+                        || java.util.regex.Pattern.compile(pattern).matcher(norm).find()) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        // 2. If a semester is identified, check direct subject titles for that semester
+        if (detectedSem != null && SEMESTER_SUBJECTS.containsKey(detectedSem)) {
+            List<String> semCandidates = SEMESTER_SUBJECTS.get(detectedSem);
+            for (String cand : semCandidates) {
+                if (lower.contains(cand.toLowerCase()) || norm.contains(cand.toLowerCase())) {
+                    return cand;
+                }
+            }
+        }
+
+        // 3. Global curriculum-wide search sorted by alias length descending
+        List<Map.Entry<String, String>> sortedEntries = new ArrayList<>(SUBJECT_ALIASES.entrySet());
+        sortedEntries.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
+
+        for (Map.Entry<String, String> entry : sortedEntries) {
             String pattern = "\\b" + java.util.regex.Pattern.quote(entry.getKey()) + "\\b";
-            if (java.util.regex.Pattern.compile(pattern).matcher(lower).find()) {
+            if (java.util.regex.Pattern.compile(pattern).matcher(lower).find()
+                    || java.util.regex.Pattern.compile(pattern).matcher(norm).find()) {
                 return entry.getValue();
             }
         }
@@ -428,25 +822,42 @@ public class ChatController {
     }
 
     private List<RetrievedChunk> filterChunksBySubject(List<RetrievedChunk> chunks, String activeSubject) {
-        if (chunks == null || chunks.isEmpty() || activeSubject == null || activeSubject.trim().isEmpty()) {
-            return chunks != null ? chunks : Collections.emptyList();
+        if (chunks == null || chunks.isEmpty()) {
+            return Collections.emptyList();
         }
-        String targetSubjNorm = activeSubject.toLowerCase().trim();
+        if (activeSubject == null || activeSubject.trim().isEmpty() || "General".equalsIgnoreCase(activeSubject) || "All".equalsIgnoreCase(activeSubject)) {
+            return chunks;
+        }
+        String targetSubjNorm = normalizeAcademicText(activeSubject);
         List<RetrievedChunk> matched = new ArrayList<>();
         for (RetrievedChunk c : chunks) {
             if (c.getMetadata() != null && c.getMetadata().getSubject() != null) {
-                String chunkSubjNorm = c.getMetadata().getSubject().toLowerCase().trim();
-                if (chunkSubjNorm.contains(targetSubjNorm) || targetSubjNorm.contains(chunkSubjNorm)
-                        || (targetSubjNorm.contains("algorithm") && chunkSubjNorm.contains("algorithm"))
-                        || (targetSubjNorm.contains("calculus") && chunkSubjNorm.contains("calculus"))
-                        || (targetSubjNorm.contains("structure") && chunkSubjNorm.contains("structure"))
-                        || (targetSubjNorm.contains("network") && chunkSubjNorm.contains("network"))
-                        || (targetSubjNorm.contains("operating") && chunkSubjNorm.contains("operating"))) {
+                String chunkSubj = c.getMetadata().getSubject().trim();
+                String chunkSubjNorm = normalizeAcademicText(chunkSubj);
+                if (chunkSubjNorm.equals(targetSubjNorm)
+                        || chunkSubjNorm.contains(targetSubjNorm)
+                        || targetSubjNorm.contains(chunkSubjNorm)
+                        || isSubjectDomainEquivalent(targetSubjNorm, chunkSubjNorm)) {
                     matched.add(c);
                 }
             }
         }
         return matched;
+    }
+
+    private boolean isSubjectDomainEquivalent(String s1, String s2) {
+        if (s1.contains("advanced programming") && s2.contains("advanced programming")) return true;
+        if (s1.contains("data structure") && s2.contains("data structure")) return true;
+        if (s1.contains("operating system") && s2.contains("operating system")) return true;
+        if (s1.contains("database") && s2.contains("database")) return true;
+        if (s1.contains("discrete") && s2.contains("discrete")) return true;
+        if (s1.contains("calculus") && s2.contains("calculus")) return true;
+        if (s1.contains("transforms") && s2.contains("transforms")) return true;
+        if (s1.contains("probability") && s2.contains("probability")) return true;
+        if (s1.contains("network") && s2.contains("network")) return true;
+        if (s1.contains("software engineering") && s2.contains("software engineering")) return true;
+        if (s1.contains("compiler") && s2.contains("compiler")) return true;
+        return false;
     }
 
     private boolean isPyqRelated(String query) {
@@ -458,13 +869,13 @@ public class ChatController {
                 || q.contains("questions to solve") || q.contains("questions on this") || q.contains("questions from this") || q.contains("practice question")
                 || q.contains("common question") || q.contains("commonly come") || q.contains("more question")
                 || q.contains("model paper") || q.contains("model qp") || q.contains("midterm")
-                || q.contains("cla") || q.contains("end sem") || q.contains("cycle test") || q.contains("give me questions")
-                || q.contains("give me past pyqs");
+                || q.contains("end sem") || q.contains("cycle test") || q.contains("give me questions")
+                || q.contains("give me past pyqs") || q.contains("question paper");
     }
 
-    private String enrichRetrievalQueryWithHistory(String query, List<MessageRecord> priorMessages) {
+    private String enrichRetrievalQueryWithHistory(String query, List<MessageRecord> priorMessages, String activeSubject) {
         if (query == null || query.trim().isEmpty()) {
-            return "Course notes and concepts";
+            return activeSubject != null ? activeSubject + " course concepts" : "Course notes and concepts";
         }
         if (isConversationalOrGreeting(query)) {
             return query;
@@ -474,23 +885,41 @@ public class ChatController {
                 cleanQ.startsWith("give more") || cleanQ.startsWith("more questions") ||
                 cleanQ.startsWith("explain this") || cleanQ.startsWith("explain that") ||
                 cleanQ.startsWith("what is that") || cleanQ.startsWith("how about") ||
+                cleanQ.startsWith("can you give") || cleanQ.startsWith("give me") ||
+                cleanQ.startsWith("solve") || cleanQ.startsWith("show") ||
                 cleanQ.equals("next") || cleanQ.equals("continue") || cleanQ.equals("solve it") ||
                 cleanQ.equals("more") || cleanQ.equals("another one") || cleanQ.equals("give another") ||
                 cleanQ.contains("this topic") || cleanQ.contains("particular topic") ||
-                cleanQ.contains("previous topic") || cleanQ.contains("same topic");
+                cleanQ.contains("previous topic") || cleanQ.contains("same topic") ||
+                cleanQ.contains("example") || cleanQ.contains("previous year") || cleanQ.contains("pyq") ||
+                cleanQ.contains("question paper") || cleanQ.contains("past paper") || cleanQ.contains("exam paper") ||
+                cleanQ.contains("questions") || cleanQ.contains("question") ||
+                cleanQ.contains("yes") || cleanQ.contains("do so") || cleanQ.contains("do it");
 
-        if (isExplicitFollowUp && priorMessages != null && !priorMessages.isEmpty()) {
+        String contextTopic = null;
+        if (priorMessages != null && !priorMessages.isEmpty()) {
             for (int i = priorMessages.size() - 1; i >= 0; i--) {
                 MessageRecord prev = priorMessages.get(i);
                 if ("user".equalsIgnoreCase(prev.getRole()) && prev.getContent() != null) {
                     String prevText = prev.getContent().trim();
                     if (!prevText.equalsIgnoreCase(query) && prevText.length() > 3 && !isConversationalOrGreeting(prevText)) {
-                        return prevText + " " + query;
+                        contextTopic = prevText;
+                        break;
                     }
                 }
             }
         }
-        return query;
+
+        StringBuilder enriched = new StringBuilder();
+        if (activeSubject != null && !activeSubject.trim().isEmpty() && !cleanQ.contains(activeSubject.toLowerCase())) {
+            enriched.append(activeSubject.trim()).append(" ");
+        }
+        if (isExplicitFollowUp && contextTopic != null) {
+            enriched.append(contextTopic).append(" ");
+        }
+        enriched.append(query);
+
+        return enriched.toString().trim();
     }
 
     private String buildGroundedPrompt(String query, boolean isGreeting, String studyMode, String activeSubject, List<RetrievedChunk> primaryChunks, List<RetrievedChunk> pyqChunks, List<AttachmentRecord> attachments) {
@@ -582,8 +1011,12 @@ public class ChatController {
         }
 
         sb.append("=== MANDATORY CONVERSATION TOPIC & CONTEXT CONTINUITY ===\n");
-        sb.append("1. If this turn is an explicit follow-up inquiry (e.g. asking for 'more questions', 'harder problems', 'common questions', 'solve another one', or 'explain next step'), stay on the active subject and topic established in the conversation history.\n");
-        sb.append("2. NEVER jump to an unrelated course unless the student explicitly asks for a different subject.\n\n");
+        if (activeSubject != null && !activeSubject.trim().isEmpty()) {
+            sb.append("1. ACTIVE SUBJECT LOCK: You are teaching ").append(activeSubject.trim()).append(".\n");
+            sb.append("2. Under NO circumstances should you switch courses (e.g. do not switch from Java/APP to Software Engineering, Calculus, or Economics).\n");
+            sb.append("3. All questions, past exam papers, code snippets, and explanations must remain 100% focused on ").append(activeSubject.trim()).append(".\n");
+        }
+        sb.append("4. NEVER jump to an unrelated course unless the student explicitly asks for a different subject.\n\n");
 
         sb.append("Respond directly as Shiro with your distinct late-night unfiltered wit, observational humor, and effortless pedagogical clarity. Do not introduce yourself. Format mathematical equations cleanly using KaTeX block math $$ ... $$ and inline $ ... $.");
 

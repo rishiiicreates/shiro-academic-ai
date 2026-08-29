@@ -23,11 +23,40 @@ export default function App() {
   
   const abortControllerRef = useRef(null);
   const isStreamingRef = useRef(false);
+  const tokenBufferRef = useRef('');
+  const rafIdRef = useRef(null);
+
+  const flushTokenBuffer = () => {
+    if (tokenBufferRef.current.length > 0) {
+      const pendingText = tokenBufferRef.current;
+      tokenBufferRef.current = '';
+      setMessages((prev) => {
+        const updated = [...prev];
+        const lastIdx = updated.length - 1;
+        if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            content: updated[lastIdx].content + pendingText
+          };
+        }
+        return updated;
+      });
+    }
+    rafIdRef.current = null;
+  };
+
+  const cancelPendingRaf = () => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    flushTokenBuffer();
+  };
 
   // Apply theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('shiro_theme', theme);
+    localStorage.setItem('the_helper_theme', theme);
   }, [theme]);
 
   const handleToggleTheme = () => {
@@ -78,6 +107,7 @@ export default function App() {
   }, [activeThreadId]);
 
   const handleNewChat = () => {
+    cancelPendingRaf();
     if (isStreaming && abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -95,6 +125,7 @@ export default function App() {
   };
 
   const handleSelectThread = (threadId) => {
+    cancelPendingRaf();
     if (isStreaming && abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -120,6 +151,7 @@ export default function App() {
   };
 
   const handleStop = () => {
+    cancelPendingRaf();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -137,6 +169,11 @@ export default function App() {
     const targetSubject = customSubject !== null && customSubject !== undefined ? customSubject : subject;
 
     setAttachments([]);
+    tokenBufferRef.current = '';
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
 
     // If no active thread yet, generate an ID
     let currentThreadId = activeThreadId || ('shiro-' + Date.now());
@@ -161,8 +198,11 @@ export default function App() {
     };
 
     const priorHistory = messages.map((m) => ({
+      id: m.id,
       role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.content || ''
+      content: m.content || '',
+      sources: m.sources || [],
+      attachments: m.attachments || []
     }));
 
     setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
@@ -195,19 +235,13 @@ export default function App() {
         });
       },
       onToken: (token, returnedThreadId) => {
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
-            updated[lastIdx] = {
-              ...updated[lastIdx],
-              content: updated[lastIdx].content + token
-            };
-          }
-          return updated;
-        });
+        tokenBufferRef.current += token;
+        if (!rafIdRef.current) {
+          rafIdRef.current = requestAnimationFrame(flushTokenBuffer);
+        }
       },
       onDone: (returnedThreadId) => {
+        cancelPendingRaf();
         setIsStreaming(false);
         isStreamingRef.current = false;
         abortControllerRef.current = null;
@@ -218,6 +252,7 @@ export default function App() {
         });
       },
       onError: (errMsg) => {
+        cancelPendingRaf();
         setIsStreaming(false);
         isStreamingRef.current = false;
         abortControllerRef.current = null;
@@ -236,13 +271,6 @@ export default function App() {
         });
       }
     });
-  };
-
-  const handleSelectPrompt = (promptText, subjectHint) => {
-    if (subjectHint) {
-      setSubject(subjectHint);
-    }
-    handleSend(promptText, subjectHint);
   };
 
   return (
@@ -276,7 +304,6 @@ export default function App() {
         setAttachments={setAttachments}
         onSend={(text) => handleSend(text)}
         onStop={handleStop}
-        onSelectPrompt={handleSelectPrompt}
         onNewChat={handleNewChat}
         theme={theme}
         onToggleTheme={handleToggleTheme}

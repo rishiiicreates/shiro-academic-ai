@@ -44,8 +44,13 @@ public class GeminiStreamService {
             String model = properties.getGeminiModel();
             String baseUrl = properties.getGeminiBaseUrl();
 
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                log.error("Gemini API key is not configured for streaming generation.");
+                return Flux.error(new IllegalStateException("GEMINI_API_KEY environment variable is not configured. Please set GEMINI_API_KEY in your .env file or environment."));
+            }
+
             String url = String.format("%s/models/%s:streamGenerateContent?alt=sse&key=%s",
-                    baseUrl, model, apiKey);
+                    baseUrl, model, apiKey.trim());
 
             log.info("Initiating Gemini stream request to model: {} with {} turns", model, contents.size());
 

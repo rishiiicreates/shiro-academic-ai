@@ -124,12 +124,16 @@ function processRenderedSvg(rawSvg) {
   });
 }
 
-export default function MermaidDiagram({ chart }) {
+export default function MermaidDiagram({ chart, isStreaming = false }) {
   const [svgContent, setSvgContent] = useState('');
   const [renderError, setRenderError] = useState(false);
   const [showCode, setShowCode] = useState(false);
 
   useEffect(() => {
+    if (isStreaming) {
+      return;
+    }
+
     try {
       mermaid.initialize(getMermaidConfig());
     } catch (e) {
@@ -144,7 +148,6 @@ export default function MermaidDiagram({ chart }) {
       const baseCleaned = cleanMermaidText(chart);
       if (baseCleaned.length < 5) return;
 
-      // Pass 1: Try rendering cleaned code
       const uniqueId1 = 'mermaid_' + Math.random().toString(36).replace(/[^a-z0-9]/g, '').substring(0, 8);
       const tempContainer = document.createElement('div');
       tempContainer.id = 'container_' + uniqueId1;
@@ -195,7 +198,23 @@ export default function MermaidDiagram({ chart }) {
     return () => {
       isMounted = false;
     };
-  }, [chart]);
+  }, [chart, isStreaming]);
+
+  // While streaming the response, render a calm, stable placeholder to prevent layout shifts & jitter
+  if (isStreaming) {
+    return (
+      <div className="mermaid-diagram-card mermaid-streaming-card">
+        <div className="mermaid-card-header">
+          <span className="mermaid-card-badge">📊 Flowchart & Mindmap</span>
+          <span className="mermaid-streaming-badge">✨ Sketching visual diagram...</span>
+        </div>
+        <div className="mermaid-streaming-placeholder">
+          <div className="mermaid-pulse-bar" />
+          <div className="mermaid-pulse-bar short" />
+        </div>
+      </div>
+    );
+  }
 
   if (renderError || !svgContent) {
     return (

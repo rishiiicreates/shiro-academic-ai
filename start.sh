@@ -8,6 +8,31 @@ echo "=========================================================="
 echo " Starting Shiro — Adaptive Professor Edition (SRMIST RAG) "
 echo "=========================================================="
 
+# Load environment variables from .env if present
+if [ -f ".env" ]; then
+  echo "Loading environment variables from .env..."
+  set -a
+  source .env
+  set +a
+fi
+
+if [ -z "$GEMINI_API_KEY" ]; then
+  echo "⚠️  WARNING: GEMINI_API_KEY is not set!"
+  echo "   Please create a .env file with GEMINI_API_KEY=your_key or export GEMINI_API_KEY in your shell."
+fi
+
+# Clean up any lingering processes on ports 8001 and 8080
+echo "Checking and cleaning up any stale processes on ports 8001 and 8080..."
+lsof -ti:8001 | xargs kill -9 2>/dev/null || true
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+sleep 1
+
+# Ensure backend JAR is built
+if [ ! -f "backend/target/shiro-backend-1.0.0.jar" ]; then
+  echo "Building Spring Boot backend JAR..."
+  (cd backend && mvn clean package -DskipTests)
+fi
+
 # 1. Start Python Retrieval Sidecar (Port 8001)
 echo "[1/3] Starting Python FastEmbed ONNX Retrieval Sidecar on :8001..."
 

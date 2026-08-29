@@ -1,5 +1,6 @@
 package com.shiro.rag.controller;
 
+import com.shiro.rag.config.AppProperties;
 import com.shiro.rag.service.RetrievalService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class MetadataController {
 
     private final RetrievalService retrievalService;
+    private final AppProperties properties;
 
-    public MetadataController(RetrievalService retrievalService) {
+    public MetadataController(RetrievalService retrievalService, AppProperties properties) {
         this.retrievalService = retrievalService;
+        this.properties = properties;
     }
 
     @GetMapping("/metadata")
@@ -31,7 +34,7 @@ public class MetadataController {
                 "status", "ok",
                 "service", "shiro-backend",
                 "framework", "Spring WebFlux Reactive",
-                "geminiModel", "gemini-3.6-flash"
+                "geminiModel", properties.getGeminiModel()
         );
     }
 }

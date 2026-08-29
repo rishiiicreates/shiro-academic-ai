@@ -5,29 +5,6 @@ import InputBox from './InputBox';
 import SubjectSelectorModal from './SubjectSelectorModal';
 import ImageModal from './ImageModal';
 
-const SAMPLE_PROMPTS = [
-  {
-    tag: 'Operating Systems (21CSC202J)',
-    subject: 'Operating Systems',
-    prompt: 'Explain CPU scheduling algorithms and Priority-based preemption with an intuitive analogy, code example, and mindmap.'
-  },
-  {
-    tag: 'Calculus & Linear Algebra',
-    subject: 'Calculus And Linear Algebra',
-    prompt: 'Walk me through Cayley-Hamilton theorem and how to calculate the inverse of a 3x3 matrix step-by-step.'
-  },
-  {
-    tag: 'DBMS (21CSC205P)',
-    subject: 'Database Management Systems',
-    prompt: 'What are the ACID properties in database transaction management and how are concurrency conflicts avoided?'
-  },
-  {
-    tag: 'Design & Analysis of Algorithms',
-    subject: 'Design And Analysis Of Algorithms',
-    prompt: 'Compare Dijkstra vs Bellman-Ford algorithm with time complexity and real SRM exam question examples.'
-  }
-];
-
 export default function ChatArea({
   thread,
   messages,
@@ -36,7 +13,6 @@ export default function ChatArea({
   setAttachments,
   onSend,
   onStop,
-  onSelectPrompt,
   onNewChat,
   theme,
   onToggleTheme,
@@ -50,10 +26,24 @@ export default function ChatArea({
 }) {
   const [showFilters, setShowFilters] = useState(false);
   const [activeImage, setActiveImage] = useState(null);
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
+
+  const handleContainerScroll = () => {
+    if (!messagesContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+    userScrolledUpRef.current = distanceFromBottom > 100;
+  };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (userScrolledUpRef.current) return;
+    requestAnimationFrame(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    });
   };
 
   useEffect(() => {
@@ -118,7 +108,7 @@ export default function ChatArea({
       </header>
 
       {/* Messages List / Empty State */}
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesContainerRef} onScroll={handleContainerScroll}>
         <div className="messages-inner">
           {messages.length === 0 ? (
             <div className="empty-state">
@@ -129,19 +119,6 @@ export default function ChatArea({
               <p className="empty-subtitle">
                 Learn any SRM topic from scratch, solve past exam papers, or query official lecture notes with unfiltered late-night wit and clarity.
               </p>
-
-              <div className="prompt-suggestions-grid">
-                {SAMPLE_PROMPTS.map((p, idx) => (
-                  <div
-                    key={idx}
-                    className="prompt-card"
-                    onClick={() => onSelectPrompt(p.prompt, p.subject)}
-                  >
-                    <div className="prompt-card-tag">{p.tag}</div>
-                    <div className="prompt-card-text">{p.prompt}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           ) : (
             messages.map((msg, index) => (

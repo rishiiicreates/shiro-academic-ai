@@ -77,126 +77,353 @@ _sqlite_conn: Optional[sqlite3.Connection] = None
 _manifest_data: Optional[Dict[str, Any]] = None
 
 SUBJECT_MAP = {
+    # Advanced Programming Practice (APP) & Java
+    'app': 'Advanced Programming Practice',
+    'advanced programming practice': 'Advanced Programming Practice',
+    'advanced programming': 'Advanced Programming Practice',
+    'advance programming': 'Advanced Programming Practice',
+    'advance programing': 'Advanced Programming Practice',
+    'advanced programing': 'Advanced Programming Practice',
+    'adv programming': 'Advanced Programming Practice',
+    'adv programing': 'Advanced Programming Practice',
+    'adv java': 'Advanced Programming Practice',
+    'advanced java': 'Advanced Programming Practice',
+    'app java': 'Advanced Programming Practice',
+    '21csc203p': 'Advanced Programming Practice',
+    '18csc207j': 'Advanced Programming Practice',
+
+    # Data Structures & Algorithms
     'dsa': 'Data Structures And Algorithm',
     'data structures': 'Data Structures And Algorithm',
     'data structure': 'Data Structures And Algorithm',
     'data structures and algorithm': 'Data Structures And Algorithm',
     'data structures and algorithms': 'Data Structures And Algorithm',
+    '21csc201j': 'Data Structures And Algorithm',
+    'daa': 'Design And Analysis Of Algorithms',
+    'ada': 'Design And Analysis Of Algorithms',
+    'algorithms': 'Design And Analysis Of Algorithms',
+    'algorithm': 'Design And Analysis Of Algorithms',
+    'design and analysis of algorithms': 'Design And Analysis Of Algorithms',
+    '21csc204j': 'Design And Analysis Of Algorithms',
+
+    # Systems & Core CS
     'os': 'Operating Systems',
     'operating system': 'Operating Systems',
     'operating systems': 'Operating Systems',
     'dbms': 'Database Management Systems',
     'database': 'Database Management Systems',
     'database management': 'Database Management Systems',
+    'database management systems': 'Database Management Systems',
+    '21csc302t': 'Database Management Systems',
     'cn': 'Computer Networks',
     'computer network': 'Computer Networks',
     'computer networks': 'Computer Networks',
+    '21csc303t': 'Computer Networks',
     'coa': 'Computer Organization And Architecture',
     'cao': 'Computer Organization And Architecture',
     'computer organization': 'Computer Organization And Architecture',
     'computer architecture': 'Computer Organization And Architecture',
-    'daa': 'Design And Analysis Of Algorithms',
-    'ada': 'Design And Analysis Of Algorithms',
-    'algorithms': 'Design And Analysis Of Algorithms',
-    'algorithm': 'Design And Analysis Of Algorithms',
+    'computer organization and architecture': 'Computer Organization And Architecture',
+    'dld': 'Digital Logic Design',
+    'digital logic design': 'Digital Logic Design',
+    'digital logic': 'Digital Logic Design',
+    'cd': 'Compiler Design',
+    'compiler design': 'Compiler Design',
+    'compiler': 'Compiler Design',
+    '21csc304t': 'Compiler Design',
+    'flata': 'Formal Language And Automata',
+    'toc': 'Formal Language And Automata',
+    'theory of computation': 'Formal Language And Automata',
+    'formal language and automata': 'Formal Language And Automata',
+    '21csc301t': 'Formal Language And Automata',
+
+    # Programming & Web
     'pps': 'Programming For Problem Solving',
     'c programming': 'Programming For Problem Solving',
+    'c language': 'Programming For Problem Solving',
     'programming for problem solving': 'Programming For Problem Solving',
+    'oodp': 'Object Oriented Design And Programming',
+    'oops': 'Object Oriented Design And Programming',
+    'oop': 'Object Oriented Design And Programming',
+    'object oriented design and programming': 'Object Oriented Design And Programming',
+    '21csc202j': 'Object Oriented Design And Programming',
+    'fswd': 'Full Stack Web Development',
+    'full stack': 'Full Stack Web Development',
+    'full stack web development': 'Full Stack Web Development',
+    'web dev': 'Full Stack Web Development',
+    '21csc305p': 'Full Stack Web Development',
+
+    # Mathematics
+    'discrete mathematics': 'Discrete Mathematics',
+    'discrete math': 'Discrete Mathematics',
+    'discrete': 'Discrete Mathematics',
+    'dm': 'Discrete Mathematics',
+    'maths 5': 'Discrete Mathematics',
+    'math 5': 'Discrete Mathematics',
+    'm5': 'Discrete Mathematics',
+    '21mab302t': 'Discrete Mathematics',
     'cla': 'Calculus And Linear Algebra',
     'linear algebra': 'Calculus And Linear Algebra',
     'calculus': 'Calculus And Linear Algebra',
+    'calculus and linear algebra': 'Calculus And Linear Algebra',
     'maths 1': 'Calculus And Linear Algebra',
+    'math 1': 'Calculus And Linear Algebra',
     'm1': 'Calculus And Linear Algebra',
+    '21mab101t': 'Calculus And Linear Algebra',
     'acca': 'Advanced Calculus And Complex Analysis',
+    'advanced calculus and complex analysis': 'Advanced Calculus And Complex Analysis',
+    'advanced calculus': 'Advanced Calculus And Complex Analysis',
+    'complex analysis': 'Advanced Calculus And Complex Analysis',
     'maths 2': 'Advanced Calculus And Complex Analysis',
+    'math 2': 'Advanced Calculus And Complex Analysis',
     'm2': 'Advanced Calculus And Complex Analysis',
+    '21mab102t': 'Advanced Calculus And Complex Analysis',
     'tpde': 'Transforms And Boundary Value Problems',
-    'maths 3': 'Transforms And Boundary Value Problems',
-    'm3': 'Transforms And Boundary Value Problems',
+    'transforms and boundary value problems': 'Transforms And Boundary Value Problems',
+    'transforms and bvp': 'Transforms And Boundary Value Problems',
     'transforms': 'Transforms And Boundary Value Problems',
+    'maths 3': 'Transforms And Boundary Value Problems',
+    'math 3': 'Transforms And Boundary Value Problems',
+    'm3': 'Transforms And Boundary Value Problems',
+    '21mab201t': 'Transforms And Boundary Value Problems',
     'pqt': 'Probability And Queueing Theory',
     'probability': 'Probability And Queueing Theory',
+    'probability and queueing theory': 'Probability And Queueing Theory',
+    'probability & applied statistics': 'Probability And Queueing Theory',
+    'probability and statistics': 'Probability And Queueing Theory',
+    'maths 4': 'Probability And Queueing Theory',
+    'math 4': 'Probability And Queueing Theory',
+    'm4': 'Probability And Queueing Theory',
+    '21mab401t': 'Probability And Queueing Theory',
     'nm': 'Numerical Methods & Analysis',
     'nma': 'Numerical Methods & Analysis',
     'numerical methods': 'Numerical Methods & Analysis',
+    'numerical methods & analysis': 'Numerical Methods & Analysis',
+    'numerical methods and analysis': 'Numerical Methods & Analysis',
+    '21mab501t': 'Numerical Methods & Analysis',
+
+    # AI, ML, Data Science
     'ai': 'Artificial Intelligence',
     'artificial intelligence': 'Artificial Intelligence',
     'ml': 'Machine Learning',
     'machine learning': 'Machine Learning',
+    'data science': 'Data Science',
+    'fds': 'Foundation of Data Science (FDS)',
+    'foundation of data science': 'Foundation of Data Science (FDS)',
+
+    # Engineering, Sciences & Others
     'sepm': 'Software Engineering & Project Management (SEPM)',
-    'se': 'Software Engineering & Project Management (SEPM)',
     'software engineering': 'Software Engineering & Project Management (SEPM)',
-    'dld': 'Digital Logic Design',
-    'dip': 'Digital Image Processing',
-    'cd': 'Compiler Design',
-    'compiler design': 'Compiler Design',
-    'compiler': 'Compiler Design',
-    'fswd': 'Full Stack Web Development',
-    'full stack': 'Full Stack Web Development',
-    'web dev': 'Full Stack Web Development',
-    'oodp': 'Object Oriented Design And Programming',
-    'oops': 'Object Oriented Design And Programming',
-    'oop': 'Object Oriented Design And Programming',
-    'java': 'Object Oriented Design And Programming',
+    'software engineering and project management': 'Software Engineering & Project Management (SEPM)',
+    'software project management': 'Software Engineering & Project Management (SEPM)',
+    'software management': 'Software Engineering & Project Management (SEPM)',
     'foe': 'Fundamental Of Economics (FOE)',
+    'fundamental of economics': 'Fundamental Of Economics (FOE)',
     'economics': 'Fundamental Of Economics (FOE)',
     'cga': 'CGA',
     'comp bio': 'Introduction To Computational Biology',
     'computational biology': 'Introduction To Computational Biology',
+    'introduction to computational biology': 'Introduction To Computational Biology',
     'chem': 'Chemistry',
     'chemistry': 'Chemistry',
+    'physical and analytical chemistry': 'Physical And Analytical Chemistry',
     'physics': 'Semiconductor Physics And Computational Methods',
     'semiconductor physics': 'Semiconductor Physics And Computational Methods',
+    'semiconductor physics and computational methods': 'Semiconductor Physics And Computational Methods',
+    'electromagnetic physics': 'Electromagnetic Physics',
     'eee': 'Electrical And Electronics Engineering',
     'electrical': 'Electrical And Electronics Engineering',
+    'electrical and electronics engineering': 'Electrical And Electronics Engineering',
     'cell bio': 'Cell Biology',
     'cell biology': 'Cell Biology',
     'biology': 'Biology',
-    'file system': 'Operating Systems',
-    'file systems': 'Operating Systems',
-    'file management': 'Operating Systems',
-    'file allocation': 'Operating Systems',
-    'file processing system': 'Database Management Systems',
-    'file processing systems': 'Database Management Systems'
+    'biochemistry': 'Biochemistry',
+    'design thinking': 'Design Thinking And Methodology',
+    'design thinking and methodology': 'Design Thinking And Methodology',
+    'dtm': 'Design Thinking And Methodology',
+    'solid state devices': 'Solid State Devices',
+    'ssd': 'Solid State Devices',
+    'pcb': 'Electronic System And PCB Design',
+    'pcb design': 'Electronic System And PCB Design',
+    'electronic system and pcb design': 'Electronic System And PCB Design',
+    'engineering mechanics': 'Engineering Mechanics',
+    'communicative english': 'Communicative English',
+    'english': 'Communicative English',
+    'social engineering': 'Social Engineering',
+    'philosophy of engineering': 'Philosophy Of Engineering',
+    'foreign languages': 'Foreign Languages'
 }
+
+SEMESTER_DOMAIN_MAP = {
+    'Semester 1': {
+        'math': 'Calculus And Linear Algebra',
+        'maths': 'Calculus And Linear Algebra',
+        'mathematics': 'Calculus And Linear Algebra',
+        'calculus': 'Calculus And Linear Algebra',
+        'programming': 'Programming For Problem Solving',
+        'coding': 'Programming For Problem Solving',
+        'c language': 'Programming For Problem Solving',
+        'chemistry': 'Physical And Analytical Chemistry',
+        'chem': 'Physical And Analytical Chemistry',
+        'biology': 'Cell Biology',
+        'bio': 'Cell Biology',
+        'economics': 'Fundamental Of Economics (FOE)'
+    },
+    'Semester 2': {
+        'math': 'Advanced Calculus And Complex Analysis',
+        'maths': 'Advanced Calculus And Complex Analysis',
+        'mathematics': 'Advanced Calculus And Complex Analysis',
+        'programming': 'Object Oriented Design And Programming',
+        'oops': 'Object Oriented Design And Programming',
+        'java': 'Object Oriented Design And Programming',
+        'physics': 'Semiconductor Physics And Computational Methods',
+        'electrical': 'Electrical And Electronics Engineering',
+        'electronics': 'Electrical And Electronics Engineering',
+        'english': 'Communicative English'
+    },
+    'Semester 3': {
+        'math': 'Transforms And Boundary Value Problems',
+        'maths': 'Transforms And Boundary Value Problems',
+        'mathematics': 'Transforms And Boundary Value Problems',
+        'transforms': 'Transforms And Boundary Value Problems',
+        'numerical': 'Numerical Methods & Analysis',
+        'programming': 'Advanced Programming Practice',
+        'data structures': 'Data Structures And Algorithm',
+        'dsa': 'Data Structures And Algorithm',
+        'os': 'Operating Systems',
+        'operating systems': 'Operating Systems',
+        'architecture': 'Computer Organization And Architecture',
+        'digital logic': 'Digital Logic Design'
+    },
+    'Semester 4': {
+        'math': 'Probability And Queueing Theory',
+        'maths': 'Probability And Queueing Theory',
+        'mathematics': 'Probability And Queueing Theory',
+        'probability': 'Probability And Queueing Theory',
+        'algorithms': 'Design And Analysis Of Algorithms',
+        'daa': 'Design And Analysis Of Algorithms',
+        'database': 'Database Management Systems',
+        'dbms': 'Database Management Systems',
+        'ai': 'Artificial Intelligence',
+        'graphics': 'CGA'
+    },
+    'Semester 5': {
+        'math': 'Discrete Mathematics',
+        'maths': 'Discrete Mathematics',
+        'mathematics': 'Discrete Mathematics',
+        'discrete': 'Discrete Mathematics',
+        'networks': 'Computer Networks',
+        'networking': 'Computer Networks',
+        'cn': 'Computer Networks',
+        'web': 'Full Stack Web Development',
+        'full stack': 'Full Stack Web Development',
+        'automata': 'Formal Language And Automata',
+        'toc': 'Formal Language And Automata'
+    },
+    'Semester 6': {
+        'compiler': 'Compiler Design',
+        'cd': 'Compiler Design',
+        'data science': 'Data Science',
+        'software engineering': 'Software Engineering & Project Management (SEPM)',
+        'sepm': 'Software Engineering & Project Management (SEPM)'
+    }
+}
+
+def normalize_academic_text(text: str) -> str:
+    if not text:
+        return ""
+    t = text.lower()
+    t = re.sub(r'[^a-zA-Z0-9\s]', ' ', t)
+    # Common academic typos & phonetics
+    t = re.sub(r'\badvance\b', 'advanced', t)
+    t = re.sub(r'\bprograming\b', 'programming', t)
+    t = re.sub(r'\balgorithim\b|\balgorythm\b|\balgos\b', 'algorithm', t)
+    t = re.sub(r'\bcalculas\b', 'calculus', t)
+    t = re.sub(r'\bprobablity\b|\bprobalility\b', 'probability', t)
+    t = re.sub(r'\bdescrete\b', 'discrete', t)
+    t = re.sub(r'\boperatng\b|\boprating\b', 'operating', t)
+    t = re.sub(r'\bstructur\b|\bstructres\b', 'structure', t)
+    t = re.sub(r'\bnetwrok\b|\bnetwrk\b', 'network', t)
+    return re.sub(r'\s+', ' ', t).strip()
+
+def extract_semester(text: str) -> Optional[str]:
+    if not text:
+        return None
+    t = text.lower()
+    m = re.search(r'(?:sem(?:ester)?\s*([1-8])|([1-8])(?:st|nd|rd|th)?\s+sem(?:ester)?|\bs([1-8])\b)', t)
+    if m:
+        sem_num = m.group(1) or m.group(2) or m.group(3)
+        return f"Semester {sem_num}"
+    return None
 
 def canonicalize_subject(sub: Optional[str]) -> Optional[str]:
     if not sub or not sub.strip():
         return None
     s_clean = sub.strip()
     s_lower = s_clean.lower()
+    s_norm = normalize_academic_text(s_clean)
     
     # 1. Exact alias match in SUBJECT_MAP
     if s_lower in SUBJECT_MAP:
         return SUBJECT_MAP[s_lower]
+    if s_norm in SUBJECT_MAP:
+        return SUBJECT_MAP[s_norm]
         
-    # 2. Check if it matches any manifest subject directly or normalized
+    # 2. Check if it matches any manifest/DB subject directly
     manifest = get_manifest()
     all_subs = manifest.get("subjects", []) if manifest else []
     for cand in all_subs:
-        if cand.lower() == s_lower:
+        if cand.lower() == s_lower or cand.lower() == s_norm:
             return cand
             
-    # 3. Fuzzy match against aliases and manifest
+    # 3. Dynamic curriculum resolution
+    resolved = detect_subject_from_query(s_clean)
+    if resolved:
+        return resolved
+
+    # 4. Strict word-boundary matching
     for alias, canonical in sorted(SUBJECT_MAP.items(), key=lambda x: -len(x[0])):
-        if alias in s_lower or s_lower in alias:
+        pattern = r'\b' + re.escape(alias) + r'\b'
+        if re.search(pattern, s_lower) or re.search(pattern, s_norm):
             return canonical
             
     for cand in all_subs:
         cand_lower = cand.lower()
-        if s_lower in cand_lower or cand_lower in s_lower:
+        if len(s_lower) >= 4 and (s_lower in cand_lower or cand_lower in s_lower or s_norm in cand_lower):
             return cand
 
     return s_clean
 
-def detect_subject_from_query(text: str) -> Optional[str]:
-    if not text:
+def detect_subject_from_query(text: str, semester_hint: Optional[str] = None) -> Optional[str]:
+    if not text or not text.strip():
         return None
     t_lower = text.lower()
+    t_norm = normalize_academic_text(text)
+    detected_sem = semester_hint or extract_semester(t_lower)
+
+    # 1. If semester is detected, match against semester domain taxonomy first
+    if detected_sem and detected_sem in SEMESTER_DOMAIN_MAP:
+        for domain_kw, subj in sorted(SEMESTER_DOMAIN_MAP[detected_sem].items(), key=lambda x: -len(x[0])):
+            pattern = r'\b' + re.escape(domain_kw) + r'\b'
+            if re.search(pattern, t_lower) or re.search(pattern, t_norm):
+                return subj
+
+    # 2. Match against curriculum manifest subjects for that semester
+    manifest = get_manifest()
+    sem_subjects_map = manifest.get("semester_subjects", {}) if manifest else {}
+    if detected_sem and detected_sem in sem_subjects_map:
+        candidates = sem_subjects_map[detected_sem]
+        for cand in candidates:
+            cand_lower = cand.lower()
+            if cand_lower in t_lower or cand_lower in t_norm:
+                return cand
+
+    # 3. General curriculum-wide search (longest alias match first)
     for alias, canonical in sorted(SUBJECT_MAP.items(), key=lambda x: -len(x[0])):
         pattern = r'\b' + re.escape(alias) + r'\b'
-        if re.search(pattern, t_lower):
+        if re.search(pattern, t_lower) or re.search(pattern, t_norm):
             return canonical
+
     return None
 
 def get_model() -> TextEmbedding:
@@ -252,12 +479,16 @@ def get_manifest() -> Dict[str, Any]:
     return _manifest_data
 
 class RetrieveRequest(BaseModel):
-    question: str = Field(..., description="The query to retrieve chunks for")
+    question: Optional[str] = Field(None, description="The query to retrieve chunks for")
+    query: Optional[str] = Field(None, description="Alias for question")
     k: int = Field(5, description="Number of top chunks to return", ge=1, le=25)
     semester: Optional[str] = Field(None, description="Optional semester filter")
     subject: Optional[str] = Field(None, description="Optional subject filter")
     category: Optional[str] = Field(None, description="Optional category filter (e.g. 'PYQs', 'Notes', 'Syllabus')")
     study_mode: Optional[str] = Field(None, description="Optional study mode (e.g. 'pyqs', 'notes', 'learn_basics')")
+
+    def get_query_text(self) -> str:
+        return (self.question or self.query or "").strip()
 
 class ChunkMetadata(BaseModel):
     file_name: Optional[str] = ""
@@ -558,7 +789,7 @@ def retrieve_full_exam_paper_sql(query_text: str, subject: Optional[str], limit:
 
 @app.post("/retrieve", response_model=RetrieveResponse)
 def retrieve(req: RetrieveRequest):
-    query_text = req.question.strip()
+    query_text = req.get_query_text()
     if not query_text:
         raise HTTPException(status_code=400, detail="Query text cannot be empty.")
 
@@ -619,14 +850,21 @@ def retrieve(req: RetrieveRequest):
 
     try:
         results = collection.query(**kwargs)
-        # If strict subject where-clause yielded 0 results, retry without where filter
+        # If strict where-clause with category yielded 0 results, retry keeping subject filter only
         if where and (not results.get("documents") or len(results.get("documents", [[]])[0]) == 0):
-            print(f"[Sidecar] 0 results with where filter {where}, retrying without strict filter...")
-            kwargs.pop("where", None)
-            results = collection.query(**kwargs)
+            if detected_subject and detected_subject.strip():
+                print(f"[Sidecar] 0 results with where filter {where}, relaxing category while locking subject: {detected_subject}")
+                kwargs["where"] = {"subject": detected_subject.strip()}
+                results = collection.query(**kwargs)
+            else:
+                kwargs.pop("where", None)
+                results = collection.query(**kwargs)
     except Exception as e:
         print(f"[Sidecar] Query error with filter {where}: {e}")
-        kwargs.pop("where", None)
+        if detected_subject and detected_subject.strip():
+            kwargs["where"] = {"subject": detected_subject.strip()}
+        else:
+            kwargs.pop("where", None)
         results = collection.query(**kwargs)
 
     retrieved_chunks: List[RetrievedChunk] = []

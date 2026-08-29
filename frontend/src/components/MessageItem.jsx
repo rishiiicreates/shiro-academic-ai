@@ -35,7 +35,7 @@ function CodeBlock({ language, value }) {
   );
 }
 
-function preprocessMarkdown(content) {
+function preprocessMarkdown(content, isStreaming = false) {
   if (!content) return '';
   let text = String(content);
 
@@ -102,12 +102,12 @@ function preprocessMarkdown(content) {
   text = text.replace(/([^\n])\s*\$\$/g, (match, p1) => p1 + '\n\n$$');
   text = text.replace(/\$\$\s*([^\n])/g, (match, p1) => '$$\n\n' + p1);
 
-  // 6. Ensure ``` code fences start on a clean new line
+  // 6. Ensure ``` code fences start on a clean new line with blank line separation
   text = text.replace(/([^\n])\s*```(\w*)/g, (match, prefix, lang) => {
     return prefix + '\n\n```' + lang;
   });
   
-  // 7. Ensure closing ``` is followed by newline if attached to text
+  // 7. Ensure closing ``` is followed by blank line if attached to text
   text = text.replace(/(\n```[^\n]*\n[\s\S]*?\n```)\s*([A-Za-z0-9#\*\>])/g, (match, codeFence, nextChar) => {
     return codeFence + '\n\n' + nextChar;
   });
@@ -137,6 +137,21 @@ function preprocessMarkdown(content) {
   }
   text = processedLines.join('\n');
 
+  // 11. Virtual delimiter balancing for smooth streaming
+  if (isStreaming) {
+    const dollarMatches = text.match(/\$\$/g);
+    const dollarCount = dollarMatches ? dollarMatches.length : 0;
+    if (dollarCount % 2 === 1) {
+      text = text + '\n$$';
+    }
+
+    const fenceMatches = text.match(/```/g);
+    const fenceCount = fenceMatches ? fenceMatches.length : 0;
+    if (fenceCount % 2 === 1) {
+      text = text + '\n```';
+    }
+  }
+
   return text;
 }
 
@@ -145,8 +160,8 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
   const isUser = message.role === 'user';
 
   const processedContent = React.useMemo(() => {
-    return preprocessMarkdown(message.content);
-  }, [message.content]);
+    return preprocessMarkdown(message.content, isStreaming);
+  }, [message.content, isStreaming]);
 
   const handleCopy = () => {
     if (!message.content) return;
@@ -226,7 +241,7 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
                       const codeText = String(children).replace(/\n$/, '');
 
                       if (!inline && match && match[1] === 'mermaid') {
-                        return <MermaidDiagram chart={codeText} />;
+                        return <MermaidDiagram chart={codeText} isStreaming={isStreaming} />;
                       }
 
                       return !inline ? (
