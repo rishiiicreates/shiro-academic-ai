@@ -11,8 +11,8 @@ sidecar:
   url: ${SIDECAR_URL:http://127.0.0.1:8001}
 
 gemini:
-  api-key: ${GEMINI_API_KEY:}
-  model: ${GEMINI_MODEL:gemini-3.6-flash}
+  apiKey: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.1-flash-lite}
   temperature: 0.2
   base-url: https://generativelanguage.googleapis.com/v1beta
 
