@@ -92,15 +92,11 @@ function preprocessMarkdown(content, isStreaming = false) {
   endBuffer += text.slice(endLastIndex);
   text = endBuffer;
 
-  // 5. Clean up leading '>' blockquote markers inside $$ ... $$ blocks so KaTeX does not parse them as mathematical operators
+  // 5. Clean up leading '>' blockquote markers inside $$ ... $$ blocks and ensure clean display math wrapping
   text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
-    const cleaned = mathContent.replace(/^[ \t]*>[ \t]?/gm, '');
-    return '$$\n' + cleaned.trim() + '\n$$';
+    const cleaned = mathContent.replace(/^[ \t]*>[ \t]?/gm, '').trim();
+    return '\n\n$$\n' + cleaned + '\n$$\n\n';
   });
-
-  // 6. Ensure display math $$ has blank lines around it for remark-math
-  text = text.replace(/([^\n])\s*\$\$/g, (match, p1) => p1 + '\n\n$$');
-  text = text.replace(/\$\$\s*([^\n])/g, (match, p1) => '$$\n\n' + p1);
 
   // 6. Ensure ``` code fences start on a clean new line with blank line separation
   text = text.replace(/([^\n])\s*```(\w*)/g, (match, prefix, lang) => {
@@ -231,7 +227,7 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
               <div className="markdown-body">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[[rehypeKatex, { output: 'htmlAndMathml', throwOnError: false, strict: false }]]}
+                  rehypePlugins={[[rehypeKatex, { output: 'html', throwOnError: false, strict: false }]]}
                   components={{
                     pre({ children }) {
                       return <>{children}</>;
