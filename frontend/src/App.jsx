@@ -5,7 +5,7 @@ import { fetchMetadata, fetchThreads, fetchThread, deleteThread, saveThreadMessa
 import './App.css';
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('the_helper_theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('shiro_theme') || localStorage.getItem('the_helper_theme') || 'light');
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [metadata, setMetadata] = useState(null);
   
@@ -27,7 +27,7 @@ export default function App() {
   // Apply theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('the_helper_theme', theme);
+    localStorage.setItem('shiro_theme', theme);
   }, [theme]);
 
   const handleToggleTheme = () => {
