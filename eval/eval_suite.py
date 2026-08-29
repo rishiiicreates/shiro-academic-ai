@@ -138,7 +138,7 @@ def query_chat_api(question, subject=None, k=5):
 
 def run_eval():
     print("=" * 70)
-    print("THE HELPER — Academic Syllabus RAG Evaluation Suite")
+    print("SHIRO — Academic Syllabus RAG Evaluation Suite")
     print("=" * 70)
 
     results = []
@@ -236,7 +236,7 @@ def run_eval():
     print(f"EVALUATION SUMMARY: {passed_count}/{len(EVAL_QUESTIONS)} tests passed ({round(passed_count/len(EVAL_QUESTIONS)*100, 1)}%)")
     print("=" * 70)
 
-    out_file = "/Users/rishii/the-helper-rag-app/eval/eval_results.json"
+    out_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eval_results.json")
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump({
             "total": len(EVAL_QUESTIONS),
