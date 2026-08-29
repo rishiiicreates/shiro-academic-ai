@@ -1,4 +1,4 @@
-package com.thehelper.rag.model;
+package com.shiro.rag.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;

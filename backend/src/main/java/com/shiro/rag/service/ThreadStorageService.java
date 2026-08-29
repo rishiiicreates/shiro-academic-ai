@@ -1,11 +1,11 @@
-package com.thehelper.rag.service;
+package com.shiro.rag.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.thehelper.rag.config.AppProperties;
-import com.thehelper.rag.model.MessageRecord;
-import com.thehelper.rag.model.ThreadRecord;
+import com.shiro.rag.config.AppProperties;
+import com.shiro.rag.model.MessageRecord;
+import com.shiro.rag.model.ThreadRecord;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +82,10 @@ public class ThreadStorageService {
     private synchronized void saveToDisk() {
         if (storageFile == null) return;
         try {
+            File parent = storageFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
             pruneExcessSessions();
             List<ThreadRecord> list = new ArrayList<>(threadMap.values());
             list.sort((a, b) -> {
@@ -207,5 +211,7 @@ public class ThreadStorageService {
 
         sb.append("================================================================");
         return count > 0 ? sb.toString() : "";
+        
+
     }
 }

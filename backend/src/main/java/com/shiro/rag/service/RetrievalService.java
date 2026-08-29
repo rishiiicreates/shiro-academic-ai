@@ -1,8 +1,8 @@
-package com.thehelper.rag.service;
+package com.shiro.rag.service;
 
-import com.thehelper.rag.config.AppProperties;
-import com.thehelper.rag.model.RetrieveRequest;
-import com.thehelper.rag.model.RetrieveResponse;
+import com.shiro.rag.config.AppProperties;
+import com.shiro.rag.model.RetrieveRequest;
+import com.shiro.rag.model.RetrieveResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;

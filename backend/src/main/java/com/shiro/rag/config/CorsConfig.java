@@ -1,4 +1,4 @@
-package com.thehelper.rag.config;
+package com.shiro.rag.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

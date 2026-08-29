@@ -1,4 +1,4 @@
-package com.thehelper.rag.config;
+package com.shiro.rag.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class AppProperties {
     @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
     private String geminiBaseUrl;
 
-    @Value("${storage.data-dir:/Users/rishii/the-helper-rag-app/data}")
+    @Value("${storage.data-dir:./data}")
     private String dataDir;
 
     public String getSidecarUrl() { return sidecarUrl; }

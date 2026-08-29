@@ -1,4 +1,4 @@
-package com.thehelper.rag.model;
+package com.shiro.rag.model;
 
 import java.util.ArrayList;
 import java.util.List;

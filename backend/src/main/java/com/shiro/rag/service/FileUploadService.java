@@ -1,9 +1,9 @@
-package com.thehelper.rag.service;
+package com.shiro.rag.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thehelper.rag.config.AppProperties;
-import com.thehelper.rag.model.AttachmentRecord;
+import com.shiro.rag.config.AppProperties;
+import com.shiro.rag.model.AttachmentRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +31,15 @@ public class FileUploadService {
 
     public Mono<AttachmentRecord> uploadToGeminiFilesApi(byte[] fileBytes, String originalFilename, String contentType) {
         String apiKey = properties.getGeminiApiKey();
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.error("Gemini API key is not configured for file upload.");
+            return Mono.error(new IllegalStateException("GEMINI_API_KEY environment variable is not configured."));
+        }
+
+        if (fileBytes == null || fileBytes.length == 0) {
+            return Mono.error(new IllegalArgumentException("File content cannot be empty."));
+        }
+
         String safeContentType = (contentType != null && !contentType.trim().isEmpty())
                 ? contentType.trim()
                 : "application/octet-stream";
@@ -39,7 +48,7 @@ public class FileUploadService {
                 : "upload_" + System.currentTimeMillis();
 
         long contentLength = fileBytes.length;
-        String initUrl = String.format("https://generativelanguage.googleapis.com/upload/v1beta/files?key=%s", apiKey);
+        String initUrl = String.format("https://generativelanguage.googleapis.com/upload/v1beta/files?key=%s", apiKey.trim());
 
         log.info("Starting Gemini Files API upload for '{}' ({} bytes, mime: {})", safeDisplayName, contentLength, safeContentType);
 
@@ -90,8 +99,11 @@ public class FileUploadService {
         try {
             JsonNode root = objectMapper.readTree(responseJson);
             JsonNode fileNode = root.path("file");
-            String uri = fileNode.path("uri").asText();
-            String name = fileNode.path("name").asText();
+            String uri = fileNode.path("uri").asText("");
+            String name = fileNode.path("name").asText("");
+            if (uri.isEmpty() && !name.isEmpty()) {
+                uri = "https://generativelanguage.googleapis.com/v1beta/" + name;
+            }
             String mimeType = fileNode.has("mimeType") ? fileNode.path("mimeType").asText() : contentType;
 
             log.info("Gemini Files API upload success: uri={}, name={}", uri, name);

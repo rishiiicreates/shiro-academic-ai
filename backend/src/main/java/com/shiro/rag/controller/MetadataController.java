@@ -1,6 +1,6 @@
-package com.thehelper.rag.controller;
+package com.shiro.rag.controller;
 
-import com.thehelper.rag.service.RetrievalService;
+import com.shiro.rag.service.RetrievalService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

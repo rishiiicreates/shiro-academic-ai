@@ -1,9 +1,9 @@
-package com.thehelper.rag.controller;
+package com.shiro.rag.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thehelper.rag.model.*;
-import com.thehelper.rag.service.GeminiStreamService;
-import com.thehelper.rag.service.RetrievalService;
+import com.shiro.rag.model.*;
+import com.shiro.rag.service.GeminiStreamService;
+import com.shiro.rag.service.RetrievalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -384,6 +384,27 @@ public class ChatController {
         put("dynamic programming", "Design And Analysis Of Algorithms");
         put("greedy", "Design And Analysis Of Algorithms");
         put("divide and conquer", "Design And Analysis Of Algorithms");
+
+        // Operating Systems & DBMS Concepts
+        put("file system", "Operating Systems");
+        put("file systems", "Operating Systems");
+        put("file allocation", "Operating Systems");
+        put("file management", "Operating Systems");
+        put("file processing system", "Database Management Systems");
+        put("file processing systems", "Database Management Systems");
+        put("priority scheduling", "Operating Systems");
+        put("process scheduling", "Operating Systems");
+        put("process states", "Operating Systems");
+        put("cpu scheduling", "Operating Systems");
+        put("deadlock", "Operating Systems");
+        put("deadlocks", "Operating Systems");
+        put("paging", "Operating Systems");
+        put("virtual memory", "Operating Systems");
+        put("acid properties", "Database Management Systems");
+        put("acid property", "Database Management Systems");
+        put("relational algebra", "Database Management Systems");
+        put("normalization", "Database Management Systems");
+        put("er model", "Database Management Systems");
 
         // Mathematics Concepts
         put("cayley hamilton", "Calculus And Linear Algebra");

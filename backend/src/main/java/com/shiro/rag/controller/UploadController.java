@@ -1,7 +1,7 @@
-package com.thehelper.rag.controller;
+package com.shiro.rag.controller;
 
-import com.thehelper.rag.model.AttachmentRecord;
-import com.thehelper.rag.service.FileUploadService;
+import com.shiro.rag.model.AttachmentRecord;
+import com.shiro.rag.service.FileUploadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -33,13 +33,18 @@ public class UploadController {
         log.info("Received file upload request: filename={}, contentType={}", filename, contentType);
 
         return DataBufferUtils.join(filePart.content())
-                .map(dataBuffer -> {
-                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                .flatMap(dataBuffer -> {
+                    int count = dataBuffer.readableByteCount();
+                    if (count == 0) {
+                        DataBufferUtils.release(dataBuffer);
+                        return Mono.error(new IllegalArgumentException("Uploaded file is empty"));
+                    }
+                    byte[] bytes = new byte[count];
                     dataBuffer.read(bytes);
                     DataBufferUtils.release(dataBuffer);
-                    return bytes;
+                    return fileUploadService.uploadToGeminiFilesApi(bytes, filename, contentType);
                 })
-                .flatMap(bytes -> fileUploadService.uploadToGeminiFilesApi(bytes, filename, contentType))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("File content was empty")))
                 .map(ResponseEntity::ok)
                 .onErrorResume(err -> {
                     log.error("Upload controller failure: {}", err.getMessage());

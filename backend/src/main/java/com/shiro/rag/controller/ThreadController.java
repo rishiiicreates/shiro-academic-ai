@@ -1,7 +1,7 @@
-package com.thehelper.rag.controller;
+package com.shiro.rag.controller;
 
-import com.thehelper.rag.model.ThreadRecord;
-import com.thehelper.rag.service.ThreadStorageService;
+import com.shiro.rag.model.ThreadRecord;
+import com.shiro.rag.service.ThreadStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
