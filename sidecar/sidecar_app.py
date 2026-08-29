@@ -25,7 +25,7 @@ os.makedirs(IMAGES_DIR, exist_ok=True)
 
 def ensure_data_extracted():
     # 1. Unpack SQLite DB if needed
-    if not os.path.exists(DB_PATH) and os.path.exists(DB_PATH + '.gz'):
+    if (not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0) and os.path.exists(DB_PATH + '.gz'):
         print(f"[Sidecar] Decompressing {DB_PATH}.gz...")
         import gzip, shutil
         with gzip.open(DB_PATH + '.gz', 'rb') as f_in:
@@ -35,7 +35,8 @@ def ensure_data_extracted():
         
     # 2. Reassemble and unpack split ChromaDB archives if needed
     part_a = os.path.join(EMBEDDINGS_DIR, 'chroma_db.tar.gz.part_aa')
-    if not os.path.exists(CHROMA_DIR) and os.path.exists(part_a):
+    chroma_needs_unpack = (not os.path.exists(CHROMA_DIR) or (os.path.isdir(CHROMA_DIR) and len(os.listdir(CHROMA_DIR)) == 0))
+    if chroma_needs_unpack and os.path.exists(part_a):
         print("[Sidecar] Reassembling and unpacking ChromaDB from split parts...")
         import glob, tarfile
         part_files = sorted(glob.glob(os.path.join(EMBEDDINGS_DIR, 'chroma_db.tar.gz.part_*')))
@@ -150,7 +151,13 @@ SUBJECT_MAP = {
     'electrical': 'Electrical And Electronics Engineering',
     'cell bio': 'Cell Biology',
     'cell biology': 'Cell Biology',
-    'biology': 'Biology'
+    'biology': 'Biology',
+    'file system': 'Operating Systems',
+    'file systems': 'Operating Systems',
+    'file management': 'Operating Systems',
+    'file allocation': 'Operating Systems',
+    'file processing system': 'Database Management Systems',
+    'file processing systems': 'Database Management Systems'
 }
 
 def canonicalize_subject(sub: Optional[str]) -> Optional[str]:

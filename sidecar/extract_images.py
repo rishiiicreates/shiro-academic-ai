@@ -7,9 +7,11 @@ import pymupdf
 import pptx
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
-SOURCE_DIR = '/Users/rishii/THE-Helper'
-OUTPUT_DIR = '/Users/rishii/the-helper-rag-app/data/images'
-MANIFEST_PATH = '/Users/rishii/the-helper-rag-app/data/images_manifest.json'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.getenv('DATA_DIR', os.path.join(BASE_DIR, 'data'))
+SOURCE_DIR = os.getenv('SOURCE_DIR', DATA_DIR)
+OUTPUT_DIR = os.getenv('IMAGES_DIR', os.path.join(DATA_DIR, 'images'))
+MANIFEST_PATH = os.getenv('IMAGES_MANIFEST_PATH', os.path.join(DATA_DIR, 'images_manifest.json'))
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
