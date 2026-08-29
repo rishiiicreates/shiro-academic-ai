@@ -8,25 +8,21 @@ public class AppProperties {
     @Value("${sidecar.url:http://127.0.0.1:8001}")
     private String sidecarUrl;
 
-    @Value("${gemini.api-key:}")
-    private String geminiApiKey;
+    @Value("${ollama.base-url:http://127.0.0.1:11434}")
+    private String ollamaBaseUrl;
 
-    @Value("${gemini.model:gemini-3.6-flash}")
-    private String geminiModel;
+    @Value("${ollama.model:llama3.1:8b}")
+    private String ollamaModel;
 
-    @Value("${gemini.temperature:0.2}")
-    private double geminiTemperature;
+    @Value("${ollama.temperature:0.2}")
+    private double ollamaTemperature;
 
-    @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
-    private String geminiBaseUrl;
-
-    @Value("${storage.data-dir:/Users/rishii/the-helper-rag-app/data}")
+    @Value("${storage.data-dir:./data}")
     private String dataDir;
 
     public String getSidecarUrl() { return sidecarUrl; }
-    public String getGeminiApiKey() { return geminiApiKey; }
-    public String getGeminiModel() { return geminiModel; }
-    public double getGeminiTemperature() { return geminiTemperature; }
-    public String getGeminiBaseUrl() { return geminiBaseUrl; }
+    public String getOllamaBaseUrl() { return ollamaBaseUrl; }
+    public String getOllamaModel() { return ollamaModel; }
+    public double getOllamaTemperature() { return ollamaTemperature; }
     public String getDataDir() { return dataDir; }
 }

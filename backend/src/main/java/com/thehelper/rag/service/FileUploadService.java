@@ -1,106 +1,85 @@
 package com.thehelper.rag.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thehelper.rag.config.AppProperties;
 import com.thehelper.rag.model.AttachmentRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @Service
 public class FileUploadService {
     private static final Logger log = LoggerFactory.getLogger(FileUploadService.class);
 
-    private final WebClient webClient;
     private final AppProperties properties;
-    private final ObjectMapper objectMapper;
 
-    public FileUploadService(WebClient webClient, AppProperties properties, ObjectMapper objectMapper) {
-        this.webClient = webClient;
+    public FileUploadService(AppProperties properties) {
         this.properties = properties;
-        this.objectMapper = objectMapper;
     }
 
-    public Mono<AttachmentRecord> uploadToGeminiFilesApi(byte[] fileBytes, String originalFilename, String contentType) {
-        String apiKey = properties.getGeminiApiKey();
-        String safeContentType = (contentType != null && !contentType.trim().isEmpty())
-                ? contentType.trim()
-                : "application/octet-stream";
-        String safeDisplayName = (originalFilename != null && !originalFilename.trim().isEmpty())
-                ? originalFilename.trim()
-                : "upload_" + System.currentTimeMillis();
+    public Mono<AttachmentRecord> saveLocally(byte[] fileBytes, String originalFilename, String contentType) {
+        return Mono.fromCallable(() -> {
+            String safeFilename = sanitizeFilename(originalFilename);
+            String safeContentType = (contentType != null && !contentType.trim().isEmpty())
+                    ? contentType.trim()
+                    : "application/octet-stream";
 
-        long contentLength = fileBytes.length;
-        String initUrl = String.format("https://generativelanguage.googleapis.com/upload/v1beta/files?key=%s", apiKey);
+            Path uploadDir = Paths.get(properties.getDataDir(), "uploads").toAbsolutePath().normalize();
+            Files.createDirectories(uploadDir);
 
-        log.info("Starting Gemini Files API upload for '{}' ({} bytes, mime: {})", safeDisplayName, contentLength, safeContentType);
+            String storedName = UUID.randomUUID() + "_" + safeFilename;
+            Path destination = uploadDir.resolve(storedName).normalize();
+            if (!destination.startsWith(uploadDir)) {
+                throw new IOException("Invalid upload path");
+            }
 
-        Map<String, Object> metadataBody = new HashMap<>();
-        Map<String, Object> fileObj = new HashMap<>();
-        fileObj.put("display_name", safeDisplayName);
-        metadataBody.put("file", fileObj);
+            Files.write(destination, fileBytes);
 
-        // Step 1: Initiate resumable upload session
-        return webClient.post()
-                .uri(initUrl)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Goog-Upload-Protocol", "resumable")
-                .header("X-Goog-Upload-Command", "start")
-                .header("X-Goog-Upload-Header-Content-Length", String.valueOf(contentLength))
-                .header("X-Goog-Upload-Header-Content-Type", safeContentType)
-                .bodyValue(metadataBody)
-                .exchangeToMono(clientResponse -> {
-                    HttpHeaders headers = clientResponse.headers().asHttpHeaders();
-                    String uploadUrl = headers.getFirst("X-Goog-Upload-URL");
-                    if (uploadUrl == null) {
-                        uploadUrl = headers.getFirst("x-goog-upload-url");
-                    }
-                    if (uploadUrl == null || clientResponse.statusCode().isError()) {
-                        return clientResponse.bodyToMono(String.class)
-                                .flatMap(errBody -> Mono.error(new RuntimeException("Failed to init Gemini upload: " + errBody)));
-                    }
-                    return Mono.just(uploadUrl);
-                })
-                // Step 2: Upload file binary bytes to the received upload URL
-                .flatMap(uploadUrl -> {
-                    log.info("Got upload URL, transmitting bytes to Gemini...");
-                    return webClient.post()
-                            .uri(uploadUrl)
-                            .header("X-Goog-Upload-Offset", "0")
-                            .header("X-Goog-Upload-Command", "upload, finalize")
-                            .header("Content-Length", String.valueOf(contentLength))
-                            .contentType(MediaType.parseMediaType(safeContentType))
-                            .bodyValue(fileBytes)
-                            .retrieve()
-                            .bodyToMono(String.class)
-                            .flatMap(responseJson -> parseUploadResponse(responseJson, safeDisplayName, safeContentType, contentLength));
-                })
-                .doOnError(err -> log.error("Gemini file upload failed: {}", err.getMessage()));
+            String localUrl = "/api/uploads/" + storedName;
+            AttachmentRecord record = new AttachmentRecord(
+                    localUrl,
+                    storedName,
+                    safeContentType,
+                    safeFilename,
+                    (long) fileBytes.length
+            );
+            record.setLocalUrl(localUrl);
+
+            log.info("Saved upload locally: '{}' ({} bytes, {})", destination, fileBytes.length, safeContentType);
+            return record;
+        });
     }
 
-    private Mono<AttachmentRecord> parseUploadResponse(String responseJson, String displayName, String contentType, long sizeBytes) {
-        try {
-            JsonNode root = objectMapper.readTree(responseJson);
-            JsonNode fileNode = root.path("file");
-            String uri = fileNode.path("uri").asText();
-            String name = fileNode.path("name").asText();
-            String mimeType = fileNode.has("mimeType") ? fileNode.path("mimeType").asText() : contentType;
+    public Mono<Resource> load(String storedName) {
+        return Mono.fromCallable(() -> {
+            if (storedName == null || storedName.isBlank() || storedName.contains("..")
+                    || storedName.contains("/") || storedName.contains("\\")) {
+                throw new IllegalArgumentException("Invalid file name");
+            }
 
-            log.info("Gemini Files API upload success: uri={}, name={}", uri, name);
+            Path uploadDir = Paths.get(properties.getDataDir(), "uploads").toAbsolutePath().normalize();
+            Path file = uploadDir.resolve(storedName).normalize();
+            if (!file.startsWith(uploadDir) || !Files.exists(file) || !Files.isRegularFile(file)) {
+                throw new IOException("File not found");
+            }
+            return new FileSystemResource(file);
+        });
+    }
 
-            AttachmentRecord record = new AttachmentRecord(uri, name, mimeType, displayName, sizeBytes);
-            return Mono.just(record);
-        } catch (Exception e) {
-            log.error("Failed to parse Gemini upload response: {}", e.getMessage());
-            return Mono.error(new RuntimeException("JSON parse error on upload response: " + e.getMessage()));
+    private String sanitizeFilename(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            return "upload";
         }
+        String value = Paths.get(filename).getFileName().toString().trim();
+        value = value.replaceAll("[^a-zA-Z0-9._-]", "_");
+        return value.isEmpty() ? "upload" : value;
     }
 }

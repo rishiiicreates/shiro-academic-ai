@@ -1,5 +1,6 @@
 package com.thehelper.rag.controller;
 
+import com.thehelper.rag.config.AppProperties;
 import com.thehelper.rag.service.RetrievalService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -15,9 +17,11 @@ import java.util.Map;
 public class MetadataController {
 
     private final RetrievalService retrievalService;
+    private final AppProperties properties;
 
-    public MetadataController(RetrievalService retrievalService) {
+    public MetadataController(RetrievalService retrievalService, AppProperties properties) {
         this.retrievalService = retrievalService;
+        this.properties = properties;
     }
 
     @GetMapping("/metadata")
@@ -27,11 +31,13 @@ public class MetadataController {
 
     @GetMapping("/health")
     public Map<String, Object> health() {
-        return Map.of(
-                "status", "ok",
-                "service", "chiroshiro-backend",
-                "framework", "Spring WebFlux Reactive",
-                "geminiModel", "gemini-3.6-flash"
-        );
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", "ok");
+        result.put("service", "chiroshiro-backend");
+        result.put("framework", "Spring WebFlux Reactive");
+        result.put("llmProvider", "ollama");
+        result.put("ollamaModel", properties.getOllamaModel());
+        result.put("ollamaBaseUrl", properties.getOllamaBaseUrl());
+        return result;
     }
 }

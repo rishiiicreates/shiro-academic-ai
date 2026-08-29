@@ -2,7 +2,7 @@ package com.thehelper.rag.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thehelper.rag.model.*;
-import com.thehelper.rag.service.GeminiStreamService;
+import com.thehelper.rag.service.OllamaStreamService;
 import com.thehelper.rag.service.RetrievalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ public class ChatController {
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
     private final RetrievalService retrievalService;
-    private final GeminiStreamService geminiStreamService;
+    private final OllamaStreamService ollamaStreamService;
     private final ObjectMapper objectMapper;
 
     private static final String SYSTEM_INSTRUCTION = """
@@ -109,10 +109,10 @@ public class ChatController {
             """;
 
     public ChatController(RetrievalService retrievalService,
-                          GeminiStreamService geminiStreamService,
+                          OllamaStreamService ollamaStreamService,
                           ObjectMapper objectMapper) {
         this.retrievalService = retrievalService;
-        this.geminiStreamService = geminiStreamService;
+        this.ollamaStreamService = ollamaStreamService;
         this.objectMapper = objectMapper;
     }
 
@@ -229,45 +229,26 @@ public class ChatController {
                     // Build prompt adapted to question, study mode, and references
                     String groundedCurrentTurn = buildGroundedPrompt(userMessage, finalIsGreeting, activeStudyMode, primaryChunks, pyqChunks, attachments);
 
-                    // Build multi-turn conversation list for Gemini
+                    // Build a provider-neutral multi-turn conversation for Ollama.
+                    // Attachments are stored locally; their names are already included in
+                    // groundedCurrentTurn. We do not send Gemini file_data/file_uri objects.
                     List<Map<String, Object>> contents = new ArrayList<>();
                     for (MessageRecord prev : priorMessages) {
-                        String role = "user".equalsIgnoreCase(prev.getRole()) ? "user" : "model";
-                        List<Map<String, Object>> parts = new ArrayList<>();
-
-                        // Include previous turn file_data if any
-                        if (prev.getAttachments() != null) {
-                            for (AttachmentRecord att : prev.getAttachments()) {
-                                if (att.getFileUri() != null && !att.getFileUri().trim().isEmpty()) {
-                                    Map<String, Object> fileData = new HashMap<>();
-                                    fileData.put("mime_type", att.getMimeType() != null ? att.getMimeType() : "application/pdf");
-                                    fileData.put("file_uri", att.getFileUri());
-                                    parts.add(Collections.singletonMap("file_data", fileData));
-                                }
-                            }
-                        }
-
-                        if (prev.getContent() != null && !prev.getContent().trim().isEmpty()) {
-                            parts.add(Collections.singletonMap("text", prev.getContent()));
-                        }
-
-                        if (!parts.isEmpty()) {
-                            contents.add(Map.of("role", role, "parts", parts));
+                        String role = "user".equalsIgnoreCase(prev.getRole()) ? "user" : "assistant";
+                        String text = prev.getContent() != null ? prev.getContent().trim() : "";
+                        if (!text.isEmpty()) {
+                            contents.add(Map.of(
+                                    "role", role,
+                                    "parts", Collections.singletonList(Collections.singletonMap("text", text))
+                            ));
                         }
                     }
 
-                    // Current turn with attachments + grounded context
-                    List<Map<String, Object>> currentParts = new ArrayList<>();
-                    for (AttachmentRecord att : attachments) {
-                        if (att.getFileUri() != null && !att.getFileUri().trim().isEmpty()) {
-                            Map<String, Object> fileData = new HashMap<>();
-                            fileData.put("mime_type", att.getMimeType() != null ? att.getMimeType() : "application/pdf");
-                            fileData.put("file_uri", att.getFileUri());
-                            currentParts.add(Collections.singletonMap("file_data", fileData));
-                        }
-                    }
-                    currentParts.add(Collections.singletonMap("text", groundedCurrentTurn));
-                    contents.add(Map.of("role", "user", "parts", currentParts));
+                    // Current turn contains the retrieved RAG context and the current question.
+                    contents.add(Map.of(
+                            "role", "user",
+                            "parts", Collections.singletonList(Collections.singletonMap("text", groundedCurrentTurn))
+                    ));
 
                     // Event 1: Emit all combined sources to client immediately
                     ServerSentEvent<String> sourcesEvent = createSseEvent(ChatEvent.sources(threadId, combinedSources));
@@ -279,14 +260,14 @@ public class ChatController {
                         effectiveSystemInstruction = SYSTEM_INSTRUCTION + "\n\n" + sessionMemoryContext;
                     }
 
-                    // Stream tokens from Gemini with full conversation history & student's private memory
-                    Flux<ServerSentEvent<String>> tokenEvents = geminiStreamService.streamGenerateContent(effectiveSystemInstruction, contents)
+                    // Stream tokens from local Ollama with full conversation history & student's private memory
+                    Flux<ServerSentEvent<String>> tokenEvents = ollamaStreamService.streamGenerateContent(effectiveSystemInstruction, contents)
                             .map(token -> {
                                 fullAssistantAnswer.append(token);
                                 return createSseEvent(ChatEvent.token(threadId, token));
                             })
                             .onErrorResume(err -> {
-                                log.error("Gemini stream error: {}", err.getMessage());
+                                log.error("Ollama stream error: {}", err.getMessage());
                                 return Flux.just(createSseEvent(ChatEvent.error(threadId, "Streaming error: " + err.getMessage())));
                             });
 

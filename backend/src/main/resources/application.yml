@@ -10,11 +10,10 @@ spring:
 sidecar:
   url: ${SIDECAR_URL:http://127.0.0.1:8001}
 
-gemini:
-  api-key: ${GEMINI_API_KEY:}
-  model: ${GEMINI_MODEL:gemini-3.6-flash}
-  temperature: 0.2
-  base-url: https://generativelanguage.googleapis.com/v1beta
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+  model: ${OLLAMA_MODEL:llama3.1:8b}
+  temperature: ${OLLAMA_TEMPERATURE:0.2}
 
 storage:
   data-dir: ${DATA_DIR:./data}
