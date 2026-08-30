@@ -6,6 +6,8 @@ spring:
     name: shiro-backend
   main:
     web-application-type: reactive
+  codec:
+    max-in-memory-size: 20MB
 
 sidecar:
   url: ${SIDECAR_URL:http://127.0.0.1:8001}

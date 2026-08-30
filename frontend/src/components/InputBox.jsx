@@ -88,12 +88,20 @@ export default function InputBox({
     }
   };
 
+  const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setIsUploading(true);
     for (const file of files) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        alert(`"${file.name}" is ${sizeMb}MB. Maximum allowed upload size is 15MB.`);
+        continue;
+      }
+
       const localUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
       try {
         const uploaded = await uploadFile(file);
