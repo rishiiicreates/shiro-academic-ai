@@ -16,7 +16,6 @@ MANIFEST_PATH = os.getenv('IMAGES_MANIFEST_PATH', os.path.join(DATA_DIR, 'images
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def sanitize_filename(name):
-    # Keep alphanumeric, dot, underscore, hyphen
     clean = re.sub(r'[^\w\-_\.]', '_', name)
     return clean[:120]
 
@@ -126,9 +125,7 @@ def extract_pptx_images(file_path, file_name, manifest):
     return total_extracted
 
 def run_extraction():
-    print("==========================================================")
-    print(" Extracting diagrams and figures from SRM source documents")
-    print("==========================================================")
+    print("Extracting diagrams and figures from source documents...")
 
     manifest = {}
     total_docs = 0
@@ -157,10 +154,7 @@ def run_extraction():
     with open(MANIFEST_PATH, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=2)
 
-    print("==========================================================")
-    print(f"Extraction Complete: {total_images} images extracted from {total_docs} documents.")
-    print(f"Manifest written to {MANIFEST_PATH}")
-    print("==========================================================")
+    print(f"Extracted {total_images} images from {total_docs} documents -> {MANIFEST_PATH}")
 
 if __name__ == "__main__":
     run_extraction()

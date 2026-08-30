@@ -1,7 +1,4 @@
-/* =========================================================
-   SHIRO — DOODLE & HANDWRITTEN NOTEBOOK DESIGN SYSTEM
-   Warm paper textures, hand-drawn ink outlines, playful highlighters
-   ========================================================= */
+/* Shiro design system */
 
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Shantell+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -123,9 +120,7 @@ body {
   background-color: var(--bg-app);
 }
 
-/* =========================================================
-   SIDEBAR (HAND-DRAWN PLANNER STYLE)
-   ========================================================= */
+/* Sidebar */
 .sidebar {
   width: 270px;
   background-color: var(--bg-sidebar);
@@ -344,9 +339,7 @@ body {
   transform: translate(-1px, -1px);
 }
 
-/* =========================================================
-   MAIN CHAT & CENTERED CONTAINER
-   ========================================================= */
+/* Main Chat */
 .main-chat {
   flex: 1;
   display: flex;
@@ -440,9 +433,7 @@ body {
 
 
 
-/* =========================================================
-   MESSAGES LIST (CENTERED CANVAS - FULL HEIGHT SCROLLABLE)
-   ========================================================= */
+/* Messages */
 .messages-container {
   position: absolute;
   top: 54px;
@@ -570,9 +561,7 @@ body {
   line-height: 1.4;
 }
 
-/* =========================================================
-   MESSAGE ITEMS (DOODLE STICKY NOTES & CARDS)
-   ========================================================= */
+/* Message Items */
 .message-row {
   width: 100%;
   display: flex;
@@ -817,9 +806,7 @@ tr:nth-child(even) td {
   background-color: var(--bg-subtle);
 }
 
-/* =========================================================
-   MERMAID DIAGRAMS & MINDMAPS (DOODLE NOTEBOOK STYLE)
-   ========================================================= */
+/* Mermaid diagrams */
 .mermaid-diagram-card {
   background-color: var(--bg-surface);
   border: 2px solid var(--border-color);
@@ -1035,9 +1022,7 @@ tr:nth-child(even) td {
   box-shadow: none !important;
 }
 
-/* =========================================================
-   STUDY MODE TOGGLE BAR & INPUT CONTAINER (CENTERED)
-   ========================================================= */
+/* Input area */
 .input-section {
   position: absolute;
   bottom: 0;
@@ -1335,9 +1320,7 @@ tr:nth-child(even) td {
   margin-top: 6px;
 }
 
-/* =========================================================
-   SUBJECT PICKER MODAL (PERFECTLY CENTERED GLOBALLY)
-   ========================================================= */
+/* Subject Picker Modal */
 .modal-overlay, .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1693,9 +1676,7 @@ tr:nth-child(even) td {
   box-shadow: var(--ink-shadow);
 }
 
-/* =========================================================
-   USER ATTACHMENTS & IMAGE SIZING FIX (BUG RESOLUTION)
-   ========================================================= */
+/* User Attachments */
 .user-attachment-image-card {
   position: relative;
   width: 150px;
@@ -1846,9 +1827,7 @@ tr:nth-child(even) td {
   flex-wrap: wrap;
 }
 
-/* =========================================================
-   STRAY MERMAID ERROR SUPPRESSION
-   ========================================================= */
+/* Mermaid error suppression */
 body > [id^="dmermaid"],
 body > svg[id^="mermaid"],
 body > div[id^="dmermaid"],

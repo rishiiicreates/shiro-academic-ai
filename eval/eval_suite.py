@@ -137,9 +137,7 @@ def query_chat_api(question, subject=None, k=5):
     }
 
 def run_eval():
-    print("=" * 70)
-    print("SHIRO — Academic Syllabus RAG Evaluation Suite")
-    print("=" * 70)
+    print("Running syllabus RAG evaluation suite...")
 
     results = []
     passed_count = 0
@@ -228,13 +226,10 @@ def run_eval():
                 "error": str(e)
             })
 
-        # Pacing to respect Gemini free tier RPM
         if idx < len(EVAL_QUESTIONS):
             time.sleep(3.0)
 
-    print("\n" + "=" * 70)
-    print(f"EVALUATION SUMMARY: {passed_count}/{len(EVAL_QUESTIONS)} tests passed ({round(passed_count/len(EVAL_QUESTIONS)*100, 1)}%)")
-    print("=" * 70)
+    print(f"\nEvaluation summary: {passed_count}/{len(EVAL_QUESTIONS)} tests passed ({round(passed_count/len(EVAL_QUESTIONS)*100, 1)}%)")
 
     out_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eval_results.json")
     with open(out_file, "w", encoding="utf-8") as f:

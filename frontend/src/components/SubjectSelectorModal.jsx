@@ -21,7 +21,6 @@ export default function SubjectSelectorModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSem, setSelectedSem] = useState('All');
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -33,7 +32,6 @@ export default function SubjectSelectorModal({
     };
   }, [isOpen]);
 
-  // Extract structured list of subjects with semester tags
   const subjectList = useMemo(() => {
     const list = [];
     const seen = new Set();
@@ -70,7 +68,6 @@ export default function SubjectSelectorModal({
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [metadata]);
 
-  // Filtered subjects based on search query & selected semester tab
   const filteredSubjects = useMemo(() => {
     let result = subjectList;
 
@@ -110,7 +107,6 @@ export default function SubjectSelectorModal({
   return (
     <div className="modal-overlay modal-backdrop" onClick={onClose}>
       <div className="subject-picker-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
         <div className="subject-picker-header">
           <div className="subject-picker-header-left">
             <div className="subject-picker-icon">
@@ -128,7 +124,6 @@ export default function SubjectSelectorModal({
           </button>
         </div>
 
-        {/* Prominent Search Bar */}
         <div className="subject-picker-search-container">
           <div className="subject-picker-search-bar">
             <Search size={16} className="search-icon" />
@@ -147,7 +142,6 @@ export default function SubjectSelectorModal({
             )}
           </div>
 
-          {/* Semester Filter Tabs */}
           <div className="semester-tabs-row">
             {SEMESTERS.map((sem) => (
               <button
@@ -162,7 +156,6 @@ export default function SubjectSelectorModal({
           </div>
         </div>
 
-        {/* Subjects List Grid */}
         <div className="subject-picker-body">
           {filteredSubjects.length === 0 ? (
             <div className="subject-picker-empty">
@@ -174,7 +167,6 @@ export default function SubjectSelectorModal({
             </div>
           ) : (
             <div className="subject-picker-grid">
-              {/* All Subjects Default Option */}
               {(!searchQuery.trim() || 'all subjects'.includes(searchQuery.toLowerCase().trim())) && selectedSem === 'All' && (
                 <button
                   type="button"
@@ -230,7 +222,6 @@ export default function SubjectSelectorModal({
           )}
         </div>
 
-        {/* Modal Footer */}
         <div className="subject-picker-footer">
           <div className="subject-picker-footer-left">
             {subject ? (

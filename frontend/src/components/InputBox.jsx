@@ -127,7 +127,6 @@ export default function InputBox({
 
   return (
     <div className="input-section">
-      {/* Study Mode Switcher Toggle Bar */}
       <div className="study-mode-toggle-bar">
         <div className="study-modes-group">
           {STUDY_MODES.map((mode) => {
@@ -149,7 +148,6 @@ export default function InputBox({
           })}
         </div>
 
-        {/* Subject Quick Pill with Clear Button */}
         <div className="subject-quick-pill-container">
           <button
             type="button"
@@ -177,10 +175,8 @@ export default function InputBox({
         </div>
       </div>
 
-      {/* Main Input Box & Solid Bottom Backdrop */}
       <div className="input-box-wrapper">
         <div className="input-container">
-          {/* Attached Files Preview Bar */}
           {attachments.length > 0 && (
             <div className="attachment-previews-list">
               {attachments.map((att, idx) => {
@@ -231,7 +227,6 @@ export default function InputBox({
 
           <div className="input-toolbar">
             <div className="input-badges-left">
-              {/* File Attachment Button */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -271,7 +266,6 @@ export default function InputBox({
           </div>
         </div>
 
-        {/* Footer Hint Text */}
         <div className="input-hint">
           {studyMode === 'learn_basics' ? (
             <span>🚀 <strong>Learn from Basics:</strong> Shiro teaches step-by-step from zero with intuition, analogies, and conceptual check-ins.</span>

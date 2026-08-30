@@ -39,15 +39,13 @@ function preprocessMarkdown(content, isStreaming = false) {
   if (!content) return '';
   let text = String(content);
 
-  // 1. Normalize line endings
   text = text.replace(/\r\n/g, '\n');
 
-  // 2. Fix glued closing $$ to words (e.g. \end{cases}$$ It looks intimidating)
   text = text.replace(/(\$\$)\s*([A-Za-z0-9#\`\*\>])/g, (match, dollar, nextChar) => {
     return '$$\n\n' + nextChar;
   });
 
-  // 3. Fix missing opening $$ for LaTeX environments (\begin{cases...})
+  // Ensure LaTeX environments are enclosed in $$ math delimiters
   const envRegex = /\\begin\{(cases|aligned|matrix|pmatrix|bmatrix|array|split|equation)\}/g;
   let match;
   let buffer = '';
@@ -69,7 +67,6 @@ function preprocessMarkdown(content, isStreaming = false) {
   buffer += text.slice(lastIndex);
   text = buffer;
 
-  // 4. Fix missing closing $$ for LaTeX environments (\end{cases...})
   const endRegex = /\\end\{(cases|aligned|matrix|pmatrix|bmatrix|array|split|equation)\}/g;
   let endMatch;
   let endBuffer = '';
@@ -92,31 +89,26 @@ function preprocessMarkdown(content, isStreaming = false) {
   endBuffer += text.slice(endLastIndex);
   text = endBuffer;
 
-  // 5. Clean up leading '>' blockquote markers inside $$ ... $$ blocks and ensure clean display math wrapping
   text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
     const cleaned = mathContent.replace(/^[ \t]*>[ \t]?/gm, '').trim();
     return '\n\n$$\n' + cleaned + '\n$$\n\n';
   });
 
-  // 6. Ensure ``` code fences start on a clean new line with blank line separation
   text = text.replace(/([^\n])\s*```(\w*)/g, (match, prefix, lang) => {
     return prefix + '\n\n```' + lang;
   });
   
-  // 7. Ensure closing ``` is followed by blank line if attached to text
   text = text.replace(/(\n```[^\n]*\n[\s\S]*?\n```)\s*([A-Za-z0-9#\*\>])/g, (match, codeFence, nextChar) => {
     return codeFence + '\n\n' + nextChar;
   });
 
-  // 8. Ensure markdown headers (###) always start on a clean new line
   text = text.replace(/(^|[^\n])\s*(#{1,6}\s+[^\n]+)/g, (match, prefix, header) => {
     return prefix ? prefix + '\n\n' + header : header;
   });
 
-  // 9. Normalize indented list items inside blockquotes to prevent accidental 4-space code block triggers
+  // Prevent indented list items inside quotes from triggering 4-space code blocks
   text = text.replace(/^([ \t]*>[ \t]*)[ \t]{2,}([-*+]|\d+\.)/gm, '$1 $2');
 
-  // 10. Ensure blockquote blocks are preceded by a blank line, without breaking consecutive > lines
   const lines = text.split('\n');
   const processedLines = [];
   for (let i = 0; i < lines.length; i++) {
@@ -133,7 +125,7 @@ function preprocessMarkdown(content, isStreaming = false) {
   }
   text = processedLines.join('\n');
 
-  // 11. Virtual delimiter balancing for smooth streaming
+  // Close unclosed delimiters mid-stream so KaTeX and code blocks render smoothly
   if (isStreaming) {
     const dollarMatches = text.match(/\$\$/g);
     const dollarCount = dollarMatches ? dollarMatches.length : 0;
@@ -168,10 +160,8 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
 
   return (
     <div className={`message-row ${isUser ? 'user-row' : 'assistant-row'}`}>
-      {/* Message Bubble */}
       {isUser ? (
         <div className="user-bubble">
-          {/* Render User Attached Images/Files as Compact Cards */}
           {message.attachments && message.attachments.length > 0 && (
             <div className="user-attachments-grid">
               {message.attachments.map((att, idx) => {
@@ -213,7 +203,6 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
         </div>
       ) : (
         <div className="assistant-bubble">
-          {/* Header */}
           <div className="assistant-header">
             <div className="assistant-header-left">
               <img src="/assets/happy-dog.svg" alt="Shiro Dog" className="assistant-avatar-dog-img" />
@@ -221,7 +210,6 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
             </div>
           </div>
 
-          {/* Body with Markdown & KaTeX */}
           <div className="assistant-body">
             {processedContent ? (
               <div className="markdown-body">
@@ -281,7 +269,6 @@ const MessageItem = React.memo(function MessageItem({ message, isStreaming, onOp
             {isStreaming && <span className="streaming-cursor" />}
           </div>
 
-          {/* Clean Action Bar */}
           {message.content && (
             <div className="assistant-footer-bar">
               <div className="assistant-footer-controls">

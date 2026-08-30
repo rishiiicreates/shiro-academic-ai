@@ -17,9 +17,8 @@ export default function App() {
   const [attachments, setAttachments] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   
-  // Scope filters & study mode
   const [subject, setSubject] = useState('');
-  const [studyMode, setStudyMode] = useState('all'); // "all" | "notes" | "pyqs" | "learn_basics"
+  const [studyMode, setStudyMode] = useState('all');
   
   const abortControllerRef = useRef(null);
   const isStreamingRef = useRef(false);
@@ -53,7 +52,6 @@ export default function App() {
     flushTokenBuffer();
   };
 
-  // Apply theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('the_helper_theme', theme);
@@ -63,7 +61,6 @@ export default function App() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  // Load initial metadata and threads
   useEffect(() => {
     fetchMetadata()
       .then(setMetadata)
@@ -81,7 +78,6 @@ export default function App() {
     }
   };
 
-  // Load active thread messages when activeThreadId changes (only if NOT currently streaming this thread)
   useEffect(() => {
     if (!activeThreadId) {
       setActiveThread(null);
@@ -175,7 +171,6 @@ export default function App() {
       rafIdRef.current = null;
     }
 
-    // If no active thread yet, generate an ID
     let currentThreadId = activeThreadId || ('shiro-' + Date.now());
     if (!activeThreadId) {
       setActiveThreadId(currentThreadId);

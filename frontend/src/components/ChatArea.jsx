@@ -52,7 +52,6 @@ export default function ChatArea({
 
   return (
     <main className="main-chat">
-      {/* Top Navigation */}
       <header className="top-nav">
         <div className="nav-left">
           <button
@@ -86,7 +85,6 @@ export default function ChatArea({
         </div>
 
         <div className="nav-right">
-          {/* New Chat Button on Mobile */}
           <button
             className="nav-action-btn mobile-only"
             onClick={onNewChat}
@@ -96,7 +94,6 @@ export default function ChatArea({
             <span>New</span>
           </button>
 
-          {/* Theme Switcher on Mobile */}
           <button
             className="nav-theme-btn mobile-only"
             onClick={onToggleTheme}
@@ -107,7 +104,6 @@ export default function ChatArea({
         </div>
       </header>
 
-      {/* Messages List / Empty State */}
       <div className="messages-container" ref={messagesContainerRef} onScroll={handleContainerScroll}>
         <div className="messages-inner">
           {messages.length === 0 ? (
@@ -135,7 +131,6 @@ export default function ChatArea({
         </div>
       </div>
 
-      {/* Slide Image Modal */}
       {activeImage && (
         <ImageModal
           image={activeImage}
@@ -143,7 +138,6 @@ export default function ChatArea({
         />
       )}
 
-      {/* Subject Search & Picker Modal */}
       <SubjectSelectorModal
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}
@@ -152,7 +146,6 @@ export default function ChatArea({
         metadata={metadata}
       />
 
-      {/* Bottom Input with Study Mode Toggle Bar (Isolated State for 0ms Latency) */}
       <InputBox
         attachments={attachments}
         setAttachments={setAttachments}

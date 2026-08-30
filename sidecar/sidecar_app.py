@@ -24,7 +24,6 @@ MIN_SIMILARITY_THRESHOLD = 0.25
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
 def ensure_data_extracted():
-    # 1. Unpack SQLite DB if needed
     if (not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0) and os.path.exists(DB_PATH + '.gz'):
         print(f"[Sidecar] Decompressing {DB_PATH}.gz...")
         import gzip, shutil
@@ -33,7 +32,6 @@ def ensure_data_extracted():
                 shutil.copyfileobj(f_in, f_out)
         print("[Sidecar] Decompressed SQLite database.")
         
-    # 2. Reassemble and unpack split ChromaDB archives if needed
     part_a = os.path.join(EMBEDDINGS_DIR, 'chroma_db.tar.gz.part_aa')
     chroma_needs_unpack = (not os.path.exists(CHROMA_DIR) or (os.path.isdir(CHROMA_DIR) and len(os.listdir(CHROMA_DIR)) == 0))
     if chroma_needs_unpack and os.path.exists(part_a):
@@ -363,25 +361,21 @@ def canonicalize_subject(sub: Optional[str]) -> Optional[str]:
     s_lower = s_clean.lower()
     s_norm = normalize_academic_text(s_clean)
     
-    # 1. Exact alias match in SUBJECT_MAP
     if s_lower in SUBJECT_MAP:
         return SUBJECT_MAP[s_lower]
     if s_norm in SUBJECT_MAP:
         return SUBJECT_MAP[s_norm]
         
-    # 2. Check if it matches any manifest/DB subject directly
     manifest = get_manifest()
     all_subs = manifest.get("subjects", []) if manifest else []
     for cand in all_subs:
         if cand.lower() == s_lower or cand.lower() == s_norm:
             return cand
             
-    # 3. Dynamic curriculum resolution
     resolved = detect_subject_from_query(s_clean)
     if resolved:
         return resolved
 
-    # 4. Strict word-boundary matching
     for alias, canonical in sorted(SUBJECT_MAP.items(), key=lambda x: -len(x[0])):
         pattern = r'\b' + re.escape(alias) + r'\b'
         if re.search(pattern, s_lower) or re.search(pattern, s_norm):
@@ -401,14 +395,12 @@ def detect_subject_from_query(text: str, semester_hint: Optional[str] = None) ->
     t_norm = normalize_academic_text(text)
     detected_sem = semester_hint or extract_semester(t_lower)
 
-    # 1. If semester is detected, match against semester domain taxonomy first
     if detected_sem and detected_sem in SEMESTER_DOMAIN_MAP:
         for domain_kw, subj in sorted(SEMESTER_DOMAIN_MAP[detected_sem].items(), key=lambda x: -len(x[0])):
             pattern = r'\b' + re.escape(domain_kw) + r'\b'
             if re.search(pattern, t_lower) or re.search(pattern, t_norm):
                 return subj
 
-    # 2. Match against curriculum manifest subjects for that semester
     manifest = get_manifest()
     sem_subjects_map = manifest.get("semester_subjects", {}) if manifest else {}
     if detected_sem and detected_sem in sem_subjects_map:
@@ -418,7 +410,6 @@ def detect_subject_from_query(text: str, semester_hint: Optional[str] = None) ->
             if cand_lower in t_lower or cand_lower in t_norm:
                 return cand
 
-    # 3. General curriculum-wide search (longest alias match first)
     for alias, canonical in sorted(SUBJECT_MAP.items(), key=lambda x: -len(x[0])):
         pattern = r'\b' + re.escape(alias) + r'\b'
         if re.search(pattern, t_lower) or re.search(pattern, t_norm):
@@ -516,11 +507,9 @@ def format_exam_session_title(file_name: str, exam_name: str) -> str:
     name = (file_name or exam_name or "").replace(".pdf", "").replace(".docx", "").replace(".doc", "").strip()
     name_lower = name.lower()
 
-    # Detect 4-digit years (e.g. 2024, 2023, 2022, 2019, 2018)
     year_match = re.search(r'(20\d\d)', name)
     year = year_match.group(1) if year_match else ""
 
-    # Detect month/session keywords
     month_match = re.search(r'\b(nov|dec|november|december|may|june|jun|july|jul|jan|january|oct|october|apr|april)\b', name_lower)
     month = month_match.group(1).capitalize() if month_match else ""
 
@@ -544,17 +533,11 @@ def format_exam_session_title(file_name: str, exam_name: str) -> str:
         return f"SRM Official Exam Paper {session}".strip()
 
 def retrieve_topic_pyqs_sql(query_text: str, subject: Optional[str], limit: int = 5) -> List[RetrievedChunk]:
-    """
-    Direct SQL topic search on pyq_questions table with strict subject isolation and BM25 relevance ranking.
-    Pulls authentic past year questions without vector guessing or cross-subject pollution.
-    """
     db = get_db()
     cursor = db.cursor()
 
-    # Detect subject from query if not explicitly passed
     effective_subject = subject.strip() if (subject and subject.strip()) else detect_subject_from_query(query_text)
 
-    # Clean query tokens
     clean_q = re.sub(r'[^a-zA-Z0-9\s]', ' ', query_text)
     stopwords = {
         'what', 'give', 'tell', 'show', 'exam', 'questions', 'question', 'solve', 
@@ -573,7 +556,6 @@ def retrieve_topic_pyqs_sql(query_text: str, subject: Optional[str], limit: int 
 
     try:
         if effective_subject:
-            # STRICT SUBJECT ISOLATION: Never match chunks from other subjects!
             if tokens:
                 fts_query = ' OR '.join(tokens[:8])
                 sql = """
@@ -589,7 +571,6 @@ def retrieve_topic_pyqs_sql(query_text: str, subject: Optional[str], limit: int 
             else:
                 rows = []
 
-            # If no keyword matches, fetch authentic sample questions from that subject's exam papers
             if not rows:
                 sql = """
                 SELECT q.id, q.question_text, q.subject, q.semester, q.exam_name, q.part, q.question_num, q.file_name, q.page_num, q.rel_path, 0 as rank
@@ -602,7 +583,6 @@ def retrieve_topic_pyqs_sql(query_text: str, subject: Optional[str], limit: int 
                 rows = cursor.fetchall()
 
         else:
-            # No subject detected or specified - perform broad multi-subject BM25 search
             if not tokens:
                 tokens = [t for t in clean_q.split() if len(t) > 2]
 
@@ -707,7 +687,6 @@ def retrieve_full_exam_paper_sql(query_text: str, subject: Optional[str], limit:
 
     try:
         if effective_subject and detected_year:
-            # Match exact subject and year
             sql = """
             SELECT id, subject, semester, year, session, exam_type, file_name, rel_path, page_count, full_text
             FROM exam_papers
@@ -718,7 +697,6 @@ def retrieve_full_exam_paper_sql(query_text: str, subject: Optional[str], limit:
             cursor.execute(sql, (f"%{effective_subject}%", detected_year, f"%{detected_year}%", limit))
             rows = cursor.fetchall()
 
-            # If no paper for that exact year, get the closest latest year paper
             if not rows:
                 sql = """
                 SELECT id, subject, semester, year, session, exam_type, file_name, rel_path, page_count, full_text
@@ -797,7 +775,6 @@ def retrieve(req: RetrieveRequest):
     detected_subject = canonicalize_subject(raw_subject) if raw_subject else detect_subject_from_query(query_text)
     is_pyq_mode = (req.category or "").upper() == "PYQS" or (req.study_mode or "").lower() == "pyqs" or is_full_paper_query(query_text)
 
-    # 1. FULL QUESTION PAPER RETRIEVAL: If student asks for complete paper of a subject/year
     if is_full_paper_query(query_text):
         full_paper_chunks = retrieve_full_exam_paper_sql(query_text, detected_subject, limit=1)
         if full_paper_chunks and len(full_paper_chunks) > 0:
@@ -808,7 +785,6 @@ def retrieve(req: RetrieveRequest):
                 chunks=full_paper_chunks
             )
 
-    # 2. DIRECT DATABASE PYQ SEARCH: Topic-wise and year-wise past questions
     if is_pyq_mode:
         sql_pyqs = retrieve_topic_pyqs_sql(query_text, detected_subject, req.k)
         if sql_pyqs and len(sql_pyqs) > 0:
@@ -819,7 +795,6 @@ def retrieve(req: RetrieveRequest):
                 chunks=sql_pyqs
             )
 
-    # Standard Vector Search Pipeline
     model = get_model()
     collection = get_collection()
 
@@ -850,7 +825,6 @@ def retrieve(req: RetrieveRequest):
 
     try:
         results = collection.query(**kwargs)
-        # If strict where-clause with category yielded 0 results, retry keeping subject filter only
         if where and (not results.get("documents") or len(results.get("documents", [[]])[0]) == 0):
             if detected_subject and detected_subject.strip():
                 print(f"[Sidecar] 0 results with where filter {where}, relaxing category while locking subject: {detected_subject}")

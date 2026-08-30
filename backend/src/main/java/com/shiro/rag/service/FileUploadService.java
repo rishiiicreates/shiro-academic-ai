@@ -57,7 +57,6 @@ public class FileUploadService {
         fileObj.put("display_name", safeDisplayName);
         metadataBody.put("file", fileObj);
 
-        // Step 1: Initiate resumable upload session
         return webClient.post()
                 .uri(initUrl)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +77,6 @@ public class FileUploadService {
                     }
                     return Mono.just(uploadUrl);
                 })
-                // Step 2: Upload file binary bytes to the received upload URL
                 .flatMap(uploadUrl -> {
                     log.info("Got upload URL, transmitting bytes to Gemini...");
                     return webClient.post()

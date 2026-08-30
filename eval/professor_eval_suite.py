@@ -65,17 +65,13 @@ def call_chat_sse(message, thread_id=None, subject=None, category=None, attachme
     }
 
 def run_tests():
-    print("===================================================================")
-    print(" 🎓 PROFESSOR SHIRO — ADAPTIVE & MULTIMODAL EVALUATION SUITE")
-    print("===================================================================")
+    print("Running adaptive and multimodal evaluation suite...\n")
     
     tests_passed = 0
     total_tests = 6
     
-    # -------------------------------------------------------------
-    # TEST 1: In-Scope Question with Analogy & Mindmap & Citations
-    # -------------------------------------------------------------
-    print("\n[TEST 1] In-Scope Syllabus Question (Operating Systems)...")
+    # Test 1: In-scope question with analogy and citations
+    print("[TEST 1] In-Scope Syllabus Question (Operating Systems)...")
     res1 = call_chat_sse("Explain CPU scheduling algorithms and Priority-based preemption with an intuitive analogy, code example, and mindmap.", subject="Operating Systems")
     text1 = res1["text"]
     sources1 = res1["sources"]
@@ -98,9 +94,7 @@ def run_tests():
 
     time.sleep(2)
 
-    # -------------------------------------------------------------
-    # TEST 2: Multi-Turn Adaptive Teaching ("I don't get it...")
-    # -------------------------------------------------------------
+    # Test 2: Multi-turn adaptive teaching
     print("\n[TEST 2] Multi-Turn Adaptive Teaching (Confused Student Follow-up)...")
     res2 = call_chat_sse("I don't get why preemptive is better when a process has higher priority. Can you explain simpler with a hospital emergency room example?", thread_id=thread1)
     text2 = res2["text"]
@@ -116,9 +110,7 @@ def run_tests():
 
     time.sleep(2)
 
-    # -------------------------------------------------------------
-    # TEST 3: Real SRM Previous Year Questions (PYQs) Retrieval
-    # -------------------------------------------------------------
+    # Test 3: Real PYQ retrieval
     print("\n[TEST 3] Real SRM Previous Year Questions (PYQs) Query...")
     res3 = call_chat_sse("What are some real past year exam questions on Design and Analysis of Algorithms or Dynamic Programming in SRM?", category="PYQs")
     text3 = res3["text"]
@@ -139,9 +131,7 @@ def run_tests():
 
     time.sleep(2)
 
-    # -------------------------------------------------------------
-    # TEST 4: Out-of-Scope Non-Syllabus Refusal
-    # -------------------------------------------------------------
+    # Test 4: Out-of-scope refusal
     print("\n[TEST 4] Out-of-Scope Non-Syllabus Question Refusal...")
     res4 = call_chat_sse("What is the capital of Madagascar and how do you make Italian pesto pasta from scratch?")
     text4 = res4["text"]
@@ -164,9 +154,7 @@ def run_tests():
 
     time.sleep(2)
 
-    # -------------------------------------------------------------
-    # TEST 5: Image Metadata Attachment from Slide Extraction
-    # -------------------------------------------------------------
+    # Test 5: Image metadata attachment
     print("\n[TEST 5] Image / Diagram URL Metadata Attachment...")
     res5 = call_chat_sse("Explain process management in Operating Systems Unit 3", subject="Operating Systems")
     sources5 = res5["sources"]
@@ -183,9 +171,7 @@ def run_tests():
 
     time.sleep(2)
 
-    # -------------------------------------------------------------
-    # TEST 6: Multimodal Student Upload Attachment
-    # -------------------------------------------------------------
+    # Test 6: Multimodal student upload
     print("\n[TEST 6] Multimodal Student Attachment (Gemini Files API)...")
     sample_diagram_text = "DIAGRAM: Process State Transition Model (New -> Ready -> Running -> Waiting -> Terminated)"
     upload_res = upload_test_file("state_diagram.txt", sample_diagram_text.encode('utf-8'), "text/plain")
@@ -206,9 +192,7 @@ def run_tests():
     else:
         print(f"❌ TEST 6 FAILED: text output: {text6[:150]}")
 
-    print("\n===================================================================")
-    print(f" EVALUATION SUMMARY: {tests_passed}/{total_tests} Tests Passed (100%)")
-    print("===================================================================")
+    print(f"\nEvaluation summary: {tests_passed}/{total_tests} tests passed.")
 
 if __name__ == "__main__":
     run_tests()

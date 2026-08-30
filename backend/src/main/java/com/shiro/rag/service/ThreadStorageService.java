@@ -165,9 +165,6 @@ public class ThreadStorageService {
         return false;
     }
 
-    /**
-     * Builds structured session memory summarizing up to the past 20 study sessions.
-     */
     public String buildSessionMemoryContext(String currentThreadId) {
         List<ThreadRecord> threads = listThreads();
         if (threads == null || threads.isEmpty()) {
@@ -193,7 +190,6 @@ public class ThreadStorageService {
                 sb.append(" | Subject: ").append(tr.getSubject());
             }
 
-            // Collect key user inquiries in this session
             List<String> userQueries = new ArrayList<>();
             for (MessageRecord m : tr.getMessages()) {
                 if ("user".equalsIgnoreCase(m.getRole()) && m.getContent() != null && !m.getContent().trim().isEmpty()) {
@@ -209,7 +205,6 @@ public class ThreadStorageService {
             sb.append("\n");
         }
 
-        sb.append("================================================================");
         return count > 0 ? sb.toString() : "";
         
 

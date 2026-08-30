@@ -132,24 +132,19 @@ public class ChatController {
             return Flux.just(createSseEvent(ChatEvent.error(threadId, "Message or attachment cannot be empty.")));
         }
 
-        // Fetch prior conversation history strictly from client (isolated & private)
         List<MessageRecord> priorMessages = (request.getMessages() != null && !request.getMessages().isEmpty())
                 ? new ArrayList<>(request.getMessages())
                 : new ArrayList<>();
 
-        // Check if query is conversational greeting/chitchat
         boolean isGreeting = isConversationalOrGreeting(userMessage) && attachments.isEmpty();
 
         String studyMode = request.getStudyMode() != null ? request.getStudyMode().trim().toLowerCase() : "all";
         String effectiveCategory = request.getCategory();
 
-        // 1. Auto-detect / inherit active subject from request, current query, or conversation history
         String effectiveSubject = request.getSubject();
         if (!isGreeting && (effectiveSubject == null || effectiveSubject.trim().isEmpty())) {
             effectiveSubject = detectSubjectFromText(userMessage);
-            // Inherit from prior turns / sources in this thread
             if (effectiveSubject == null && priorMessages != null && !priorMessages.isEmpty()) {
-                // A. Check prior user messages backwards
                 for (int i = priorMessages.size() - 1; i >= 0; i--) {
                     MessageRecord msg = priorMessages.get(i);
                     if ("user".equalsIgnoreCase(msg.getRole()) && msg.getContent() != null) {
@@ -160,7 +155,6 @@ public class ChatController {
                         }
                     }
                 }
-                // B. Check prior assistant messages backwards
                 if (effectiveSubject == null) {
                     for (int i = priorMessages.size() - 1; i >= 0; i--) {
                         MessageRecord msg = priorMessages.get(i);
@@ -173,7 +167,6 @@ public class ChatController {
                         }
                     }
                 }
-                // C. Check prior source citation metadata
                 if (effectiveSubject == null) {
                     for (int i = priorMessages.size() - 1; i >= 0; i--) {
                         MessageRecord msg = priorMessages.get(i);
@@ -194,7 +187,6 @@ public class ChatController {
             }
         }
 
-        // Prepare primary retrieval request with context enrichment for follow-up inquiries
         String retrievalQuery = isGreeting ? userMessage : enrichRetrievalQueryWithHistory(userMessage, priorMessages, effectiveSubject);
         if (effectiveSubject == null && !isGreeting) {
             effectiveSubject = detectSubjectFromText(retrievalQuery);
@@ -202,7 +194,6 @@ public class ChatController {
 
         boolean isPyqQuery = !isGreeting && (isPyqRelated(userMessage) || isPyqRelated(retrievalQuery));
 
-        // Preserve explicit study mode selected by the student
         if ("learn_basics".equals(studyMode)) {
             effectiveCategory = "Notes";
         } else if ("notes".equals(studyMode)) {
@@ -210,7 +201,6 @@ public class ChatController {
         } else if ("pyqs".equals(studyMode)) {
             effectiveCategory = "PYQs";
         } else if (isPyqQuery) {
-            // Only auto-switch to pyqs if studyMode was generic ('all')
             studyMode = "pyqs";
             effectiveCategory = "PYQs";
         }
@@ -228,7 +218,6 @@ public class ChatController {
                 ? Mono.just(new RetrieveResponse(Collections.emptyList(), 0))
                 : retrievalService.retrieve(primaryRetrieveRequest).onErrorReturn(new RetrieveResponse(Collections.emptyList(), 0));
 
-        // Determine if query is exam/PYQ related
         boolean needsPyqs = !isGreeting && ("pyqs".equals(studyMode) || (isPyqQuery && !"notes".equals(studyMode) && !"learn_basics".equals(studyMode)));
         Mono<List<RetrievedChunk>> pyqRetrieveMono = needsPyqs
                 ? retrievalService.retrieve(new RetrieveRequest(retrievalQuery, 5, null, effectiveSubject, "PYQs", "pyqs"))
@@ -253,16 +242,13 @@ public class ChatController {
 
                     allSourcesRef.set(combinedSources);
 
-                    // Build prompt adapted to question, study mode, and references
                     String groundedCurrentTurn = buildGroundedPrompt(userMessage, finalIsGreeting, activeStudyMode, finalEffectiveSubject, primaryChunks, pyqChunks, attachments);
 
-                    // Build multi-turn conversation list for Gemini
                     List<Map<String, Object>> contents = new ArrayList<>();
                     for (MessageRecord prev : priorMessages) {
                         String role = "user".equalsIgnoreCase(prev.getRole()) ? "user" : "model";
                         List<Map<String, Object>> parts = new ArrayList<>();
 
-                        // Include previous turn file_data if any
                         if (prev.getAttachments() != null) {
                             for (AttachmentRecord att : prev.getAttachments()) {
                                 if (att.getFileUri() != null && !att.getFileUri().trim().isEmpty()) {
@@ -283,7 +269,6 @@ public class ChatController {
                         }
                     }
 
-                    // Current turn with attachments + grounded context
                     List<Map<String, Object>> currentParts = new ArrayList<>();
                     for (AttachmentRecord att : attachments) {
                         if (att.getFileUri() != null && !att.getFileUri().trim().isEmpty()) {
@@ -298,17 +283,14 @@ public class ChatController {
 
                     log.info("Constructed Gemini Prompt:\n{}", groundedCurrentTurn);
 
-                    // Event 1: Emit all combined sources to client immediately
                     ServerSentEvent<String> sourcesEvent = createSseEvent(ChatEvent.sources(threadId, combinedSources));
 
-                    // Inject user's own past sessions memory (strictly from request.getUserSessions() - isolated to this student)
                     String sessionMemoryContext = buildUserSessionMemoryContext(request.getUserSessions());
                     String effectiveSystemInstruction = SYSTEM_INSTRUCTION;
                     if (sessionMemoryContext != null && !sessionMemoryContext.trim().isEmpty()) {
                         effectiveSystemInstruction = SYSTEM_INSTRUCTION + "\n\n" + sessionMemoryContext;
                     }
 
-                    // Stream tokens from Gemini with full conversation history & student's private memory
                     Flux<ServerSentEvent<String>> tokenEvents = geminiStreamService.streamGenerateContent(effectiveSystemInstruction, contents)
                             .map(token -> {
                                 fullAssistantAnswer.append(token);
@@ -327,7 +309,6 @@ public class ChatController {
                                 return Flux.just(createSseEvent(ChatEvent.error(threadId, userFriendlyMessage)));
                             });
 
-                    // Event Last: Emit completion event
                     Mono<ServerSentEvent<String>> doneEvent = Mono.fromCallable(() -> {
                         return createSseEvent(ChatEvent.done(threadId));
                     });
@@ -782,7 +763,6 @@ public class ChatController {
         String norm = normalizeAcademicText(text);
         String detectedSem = extractSemester(lower);
 
-        // 1. If a semester is identified, match against semester domain taxonomy first
         if (detectedSem != null && SEMESTER_DOMAIN_MAP.containsKey(detectedSem)) {
             Map<String, String> domainMap = SEMESTER_DOMAIN_MAP.get(detectedSem);
             List<Map.Entry<String, String>> sortedDomainEntries = new ArrayList<>(domainMap.entrySet());
@@ -797,7 +777,6 @@ public class ChatController {
             }
         }
 
-        // 2. If a semester is identified, check direct subject titles for that semester
         if (detectedSem != null && SEMESTER_SUBJECTS.containsKey(detectedSem)) {
             List<String> semCandidates = SEMESTER_SUBJECTS.get(detectedSem);
             for (String cand : semCandidates) {
@@ -807,7 +786,6 @@ public class ChatController {
             }
         }
 
-        // 3. Global curriculum-wide search sorted by alias length descending
         List<Map.Entry<String, String>> sortedEntries = new ArrayList<>(SUBJECT_ALIASES.entrySet());
         sortedEntries.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
 
@@ -1045,7 +1023,6 @@ public class ChatController {
             }
             sb.append("\n");
         }
-        sb.append("========================================================================\n");
         return count > 0 ? sb.toString() : "";
     }
 

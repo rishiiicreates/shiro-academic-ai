@@ -59,20 +59,15 @@ function getMermaidConfig() {
   };
 }
 
-/**
- * Clean and normalize Mermaid chart code before rendering
- */
 function cleanMermaidText(raw) {
   if (!raw) return '';
   let chart = raw.trim();
 
-  // Strip code fences if present
   chart = chart
     .replace(/^```(mermaid|stateDiagram-v2|stateDiagram|flowchart|mindmap|graph)?\s*/i, '')
     .replace(/\s*```$/, '')
     .trim();
 
-  // If no chart type is declared at the top, default to flowchart TD
   const hasType = /^(flowchart|graph|mindmap|sequenceDiagram|classDiagram|stateDiagram|stateDiagram-v2|erDiagram|gantt|pie|gitGraph)\b/i.test(chart);
   if (!hasType) {
     chart = 'flowchart TD\n' + chart;
@@ -81,31 +76,24 @@ function cleanMermaidText(raw) {
   return chart;
 }
 
-/**
- * Fix unquoted node labels with special characters like colons, slashes, or nested brackets
- */
 function autoQuoteLabels(chart) {
   if (!/^(flowchart|graph)\b/i.test(chart)) {
     return chart;
   }
 
   return chart
-    // 1. Rhombus / Decision nodes: B{Label with : or /} -> B{"Label with : or /"}
     .replace(/(\b[a-zA-Z0-9_-]+)\{([^{}"\r\n]+)\}/g, (match, id, text) => {
       const trimmed = text.trim();
       return `${id}{"${trimmed.replace(/"/g, "'")}"}`;
     })
-    // 2. Stadium / Capsule nodes: A([Label]) -> A(["Label"])
     .replace(/(\b[a-zA-Z0-9_-]+)\(\[([^\[\]"\r\n]+)\]\)/g, (match, id, text) => {
       const trimmed = text.trim();
       return `${id}(["${trimmed.replace(/"/g, "'")}"])`;
     })
-    // 3. Rectangular nodes: A[Label] -> A["Label"]
     .replace(/(\b[a-zA-Z0-9_-]+)\[([^\[\]"\r\n]+)\]/g, (match, id, text) => {
       const trimmed = text.trim();
       return `${id}["${trimmed.replace(/"/g, "'")}"]`;
     })
-    // 4. Edge labels: -->|Label| -> -->|"Label"|
     .replace(/\|([^"|\r\n]+)\|/g, (match, text) => {
       const trimmed = text.trim();
       return `|"${trimmed.replace(/"/g, "'")}"|`;
@@ -115,7 +103,6 @@ function autoQuoteLabels(chart) {
 function processRenderedSvg(rawSvg) {
   if (!rawSvg) return '';
   return rawSvg.replace(/<svg\s+([^>]*?)>/i, (match, attrs) => {
-    // Strip existing fixed width/height/max-width styles from root tag
     const cleanAttrs = attrs
       .replace(/style="[^"]*"/gi, '')
       .replace(/width="[^"]*"/gi, '')
@@ -168,7 +155,6 @@ export default function MermaidDiagram({ chart, isStreaming = false }) {
         }
         return;
       } catch (err1) {
-        // Pass 2: Try auto-quoting labels
         try {
           const autoQuoted = autoQuoteLabels(baseCleaned);
           const uniqueId2 = 'mermaid_' + Math.random().toString(36).replace(/[^a-z0-9]/g, '').substring(0, 8);
@@ -200,7 +186,6 @@ export default function MermaidDiagram({ chart, isStreaming = false }) {
     };
   }, [chart, isStreaming]);
 
-  // While streaming the response, render a calm, stable placeholder to prevent layout shifts & jitter
   if (isStreaming) {
     return (
       <div className="mermaid-diagram-card mermaid-streaming-card">
