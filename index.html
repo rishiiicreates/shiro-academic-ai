@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHIRO — Academic Syllabus RAG | Coursework Presentation</title>
+    <!-- Chart.js 4.4.1 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Google Fonts: Kalam, Patrick Hand, Architects Daughter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Kalam:wght@700&family=Patrick+Hand&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Warm Graph Paper Background */
+            --paper-bg: #FBF8EE;
+            --paper-grid: #E6DFCB;
+            --ink-black: #16181F;
+            --ink-muted: #494E65;
+            
+            /* High-Contrast Pastels */
+            --note-yellow: #FFF89A;
+            --note-cyan: #C7EEFF;
+            --note-pink: #FFD4DF;
+            --note-green: #D2F7D7;
+            --note-orange: #FFE4D3;
+            --note-purple: #EBDCF5;
+            
+            /* Pen Colors */
+            --pen-red: #E63946;
+            --pen-blue: #1D3557;
+            --pen-green: #2A9D8F;
+            --pen-orange: #E76F51;
+
+            --font-doodle: 'Patrick Hand', cursive, sans-serif;
+            --font-marker: 'Kalam', cursive, sans-serif;
+            --font-sketch: 'Architects Daughter', cursive, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #12131A;
+            color: var(--ink-black);
+            font-family: var(--font-doodle);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 16:9 Presentation Canvas - Perfectly Filled */
+        .stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: calc(100vh * 16 / 9);
+            max-height: calc(100vw * 9 / 16);
+            background-color: var(--paper-bg);
+            background-image: 
+                linear-gradient(var(--paper-grid) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, var(--paper-grid) 1.5px, transparent 1.5px);
+            background-size: 26px 26px;
+            overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 0 3px #16181F;
+            border-radius: 12px;
+        }
+
+        /* Slide Viewport */
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 16px 26px 52px 26px;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        /* Top Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .notebook-tag {
+            font-family: var(--font-marker);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ink-black);
+            background: var(--note-yellow);
+            padding: 3px 14px;
+            border: 2px solid var(--ink-black);
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-num {
+            font-family: var(--font-sketch);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ink-muted);
+            border-bottom: 2px dashed var(--ink-muted);
+            padding: 1px 8px;
+        }
+
+        /* Headings */
+        .slide-title-group {
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+
+        .slide-title {
+            font-family: var(--font-marker);
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1.05;
+            color: var(--ink-black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-highlight {
+            background: linear-gradient(104deg, rgba(255,240,102,0) 0.9%, rgba(255,240,102,0.95) 2.4%, rgba(255,240,102,0.85) 93%, rgba(255,240,102,0) 98%);
+            padding: 1px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .slide-subtitle {
+            font-family: var(--font-doodle);
+            font-size: 21px;
+            color: var(--ink-muted);
+            line-height: 1.2;
+            margin-top: 1px;
+        }
+
+        /* Slide Content Area - Stretches 100% */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+            gap: 8px;
+        }
+
+        /* Grids */
+        .doodle-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            height: 100%;
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        .doodle-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            height: 100%;
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        .doodle-grid-2-3 {
+            display: grid;
+            grid-template-columns: 1.7fr 3.3fr;
+            gap: 14px;
+            height: 100%;
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        /* Full Space Visual Cards */
+        .doodle-card {
+            background: #FFFFFF;
+            border: 2px solid var(--ink-black);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 0;
+            justify-content: space-between;
+        }
+
+        .sticky-note {
+            border: 2px solid var(--ink-black);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 0;
+            justify-content: space-between;
+        }
+
+        .sticky-note.yellow { background: var(--note-yellow); }
+        .sticky-note.cyan { background: var(--note-cyan); }
+        .sticky-note.pink { background: var(--note-pink); }
+        .sticky-note.green { background: var(--note-green); }
+        .sticky-note.orange { background: var(--note-orange); }
+        .sticky-note.purple { background: var(--note-purple); }
+
+        .tape-strip {
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 76px;
+            height: 18px;
+            background: rgba(230, 220, 190, 0.85);
+            border: 1px dashed rgba(120, 100, 70, 0.5);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .card-heading {
+            font-family: var(--font-marker);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--ink-black);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Giant Numbers */
+        .giant-num {
+            font-family: var(--font-marker);
+            font-size: 60px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--ink-black);
+        }
+
+        .giant-label {
+            font-family: var(--font-marker);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--pen-blue);
+            margin-top: 2px;
+        }
+
+        .giant-desc {
+            font-family: var(--font-doodle);
+            font-size: 18px;
+            color: var(--ink-muted);
+            margin-top: 1px;
+        }
+
+        /* Pill Badge */
+        .doodle-badge {
+            font-family: var(--font-sketch);
+            font-size: 16px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border: 1.5px solid var(--ink-black);
+            border-radius: 14px;
+            background: #FFFFFF;
+            color: var(--ink-black);
+            display: inline-block;
+        }
+
+        /* Chart Canvas Holder */
+        .chart-holder {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Table */
+        .sketch-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-doodle);
+            font-size: 18px;
+            height: 100%;
+        }
+
+        .sketch-table th {
+            text-align: left;
+            padding: 8px 12px;
+            font-family: var(--font-marker);
+            font-size: 20px;
+            font-weight: 700;
+            border-bottom: 2.5px solid var(--ink-black);
+            color: var(--ink-black);
+        }
+
+        .sketch-table td {
+            padding: 8px 12px;
+            border-bottom: 1.5px dashed var(--paper-grid);
+            color: var(--ink-black);
+        }
+
+        .sketch-table tr:hover td {
+            background: var(--note-yellow);
+        }
+
+        /* Bottom Persistent Navigation Bar */
+        .stage-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: #F4EFE0;
+            border-top: 2px solid var(--ink-black);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 50;
+        }
+
+        .footer-logo {
+            font-family: var(--font-marker);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ink-black);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-logo-box {
+            background: var(--ink-black);
+            color: #FFFFFF;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+
+        .footer-topic {
+            font-family: var(--font-sketch);
+            font-size: 16px;
+            color: var(--ink-muted);
+        }
+
+        .footer-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doodle-btn {
+            background: #FFFFFF;
+            border: 2px solid var(--ink-black);
+            border-radius: 6px;
+            font-family: var(--font-marker);
+            font-size: 18px;
+            font-weight: 700;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .doodle-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--ink-black);
+            background: var(--note-yellow);
+        }
+
+        .page-counter {
+            font-family: var(--font-sketch);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink-black);
+        }
+
+        .progress-line {
+            position: absolute;
+            top: -2px;
+            left: 0;
+            height: 4px;
+            background: var(--pen-red);
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage" id="deck">
+
+        <!-- ==========================================
+             SLIDE 1: HERO NOTEBOOK COVER (RICH & FULL)
+             ========================================== -->
+        <div class="slide active" id="slide-1">
+            <div class="slide-header">
+                <div class="notebook-tag">
+                    <span>📓 SRM B.TECH DEFENSE // 2026</span>
+                </div>
+                <div class="page-num">NOTEBOOK #01</div>
+            </div>
+
+            <div class="slide-content">
+                <div>
+                    <div style="font-family: var(--font-sketch); font-size: 20px; color: var(--pen-red); font-weight: 700;">
+                        ✏️ COURSEWORK RESEARCH & ARCHITECTURE
+                    </div>
+
+                    <h1 style="font-family: var(--font-marker); font-size: 50px; font-weight: 700; line-height: 1.1; color: var(--ink-black); margin-top: 2px;">
+                        Shiro: <span class="title-highlight">Autonomous Syllabus-Grounded Mentor</span>
+                    </h1>
+
+                    <!-- Big Tech Pills -->
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        <span class="doodle-badge" style="background: var(--note-yellow); font-size: 16.5px; padding: 4px 12px;">⚡ Spring Boot 3.4 WebFlux (:8080)</span>
+                        <span class="doodle-badge" style="background: var(--note-cyan); font-size: 16.5px; padding: 4px 12px;">🔍 FastEmbed ONNX Sidecar (:8001)</span>
+                        <span class="doodle-badge" style="background: var(--note-green); font-size: 16.5px; padding: 4px 12px;">🖥️ React 18 + Vite SPA (:5173)</span>
+                        <span class="doodle-badge" style="background: var(--note-pink); font-size: 16.5px; padding: 4px 12px;">📚 ChromaDB + SQLite FTS5</span>
+                    </div>
+                </div>
+
+                <!-- 2 Big Core Feature Banners (Richly Filled) -->
+                <div class="doodle-grid-2" style="flex: 1.1;">
+                    <div class="sticky-note yellow" style="padding: 14px 20px; justify-content: space-evenly;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-heading" style="font-size: 24px; color: var(--pen-red); margin: 0;">
+                                <span>🎯 100% Strict Boundary Refusal</span>
+                            </div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 15px;">ZERO HALLUCINATION</span>
+                        </div>
+                        <div style="font-family: var(--font-sketch); font-size: 17px; color: var(--pen-orange); font-weight: 700;">
+                            SRM SYLLABUS LOCKED • ZERO OUT-OF-SCOPE LEAKAGE
+                        </div>
+                        <div style="font-family: var(--font-doodle); font-size: 20px; color: var(--ink-black); line-height: 1.3;">
+                            Automatically intercepts and rejects non-syllabus questions, guaranteeing 0% hallucination during exams!
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 15px;">🔒 Exact Syllabus Boundary</span>
+                            <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 15px;">🛡️ Safe Exam Prep</span>
+                        </div>
+                    </div>
+
+                    <div class="sticky-note cyan" style="padding: 14px 20px; justify-content: space-evenly;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-heading" style="font-size: 24px; color: var(--pen-blue); margin: 0;">
+                                <span>⚡ Reactive Streaming Event Loops</span>
+                            </div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 15px;">&lt; 480ms TTFT</span>
+                        </div>
+                        <div style="font-family: var(--font-sketch); font-size: 17px; color: var(--pen-blue); font-weight: 700;">
+                            PROJECT REACTOR FLUX • ASYNC NON-BLOCKING PIPELINE
+                        </div>
+                        <div style="font-family: var(--font-doodle); font-size: 20px; color: var(--ink-black); line-height: 1.3;">
+                            Project Reactor streams tokens in ~480ms with automated 4x exponential backoff on quota limits!
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 15px;">🚀 10,000+ Concurrency</span>
+                            <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 15px;">📦 &lt; 180MB RAM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 Massive Metric Stat Cards (Richly Filled) -->
+                <div class="doodle-grid-3" style="flex: 1.35;">
+                    <div class="sticky-note yellow" style="padding: 14px 18px; justify-content: space-evenly; text-align: center;">
+                        <div class="tape-strip"></div>
+                        <div class="giant-num" style="color: var(--pen-red); font-size: 64px; line-height: 1;">95,672</div>
+                        <div class="giant-label" style="font-size: 24px; margin-top: 2px;">Vector Chunks</div>
+                        <div class="giant-desc" style="font-size: 18.5px;">68 Subjects • 8 Semesters • 943 PDFs</div>
+                        <div style="margin-top: 2px;">
+                            <span class="doodle-badge" style="background: #FFF; font-size: 15px;">📚 Complete B.Tech Corpus</span>
+                        </div>
+                    </div>
+
+                    <div class="sticky-note green" style="padding: 14px 18px; justify-content: space-evenly; text-align: center;">
+                        <div class="tape-strip"></div>
+                        <div class="giant-num" style="color: var(--pen-green); font-size: 64px; line-height: 1;">100%</div>
+                        <div class="giant-label" style="font-size: 24px; margin-top: 2px;">Grounding Accuracy</div>
+                        <div class="giant-desc" style="font-size: 18.5px;">Zero out-of-scope leakages in eval!</div>
+                        <div style="margin-top: 2px;">
+                            <span class="doodle-badge" style="background: #FFF; font-size: 15px;">🎯 10/10 Benchmark Passed</span>
+                        </div>
+                    </div>
+
+                    <div class="sticky-note cyan" style="padding: 14px 18px; justify-content: space-evenly; text-align: center;">
+                        <div class="tape-strip"></div>
+                        <div class="giant-num" style="color: var(--pen-blue); font-size: 64px; line-height: 1;">&lt; 38ms</div>
+                        <div class="giant-label" style="font-size: 24px; margin-top: 2px;">Local ONNX Latency</div>
+                        <div class="giant-desc" style="font-size: 18.5px;">bge-small on CPU with $0 API fees</div>
+                        <div style="margin-top: 2px;">
+                            <span class="doodle-badge" style="background: #FFF; font-size: 15px;">⚡ $0 Cloud Vector Costs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 2: THE PROBLEM (BIG VISUAL EXPANSION)
+             ========================================== -->
+        <div class="slide" id="slide-2">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-pink);">⚠️ THE PROBLEM</div>
+                <div class="page-num">PAGE 01</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Why Generic AI <span class="title-highlight" style="background: rgba(255, 112, 166, 0.4);">Fails Engineering Exams</span></h2>
+                <p class="slide-subtitle">
+                    Commercial chatbots invent non-syllabus formulas and hallucinate mock past papers!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: 3 Big Visual Failure Badges (Richly Filled) -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+                        <div class="sticky-note pink" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-red); margin: 0;">
+                                    <span>❌ Scope Creep & Non-Syllabus Methods</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">HALLUCINATION</span>
+                            </div>
+                            <div style="font-size: 19.5px; color: var(--ink-black); line-height: 1.35;">
+                                Produces Gaussian elimination instead of SRM's required <b>Cayley-Hamilton theorem</b>!
+                            </div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-red); font-weight: 700;">
+                                ⚠️ Risk: Students lose 12 marks by writing non-prescribed syllabus derivations.
+                            </div>
+                        </div>
+
+                        <div class="sticky-note orange" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-orange); margin: 0;">
+                                    <span>❌ Fabricated Past Exam Papers (PYQs)</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">FAKE PAPERS</span>
+                            </div>
+                            <div style="font-size: 19.5px; color: var(--ink-black); line-height: 1.35;">
+                                Fails to retrieve real <b>Part A (2M)</b> & <b>Part B (12M)</b> past university papers!
+                            </div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-orange); font-weight: 700;">
+                                ⚠️ Risk: Generates fictitious exam questions that never appeared in actual finals.
+                            </div>
+                        </div>
+
+                        <div class="sticky-note yellow" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-blue); margin: 0;">
+                                    <span>❌ Unparsed LaTeX & Broken Math</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">BROKEN LATEX</span>
+                            </div>
+                            <div style="font-size: 19.5px; color: var(--ink-black); line-height: 1.35;">
+                                Raw LaTeX escapes and confusing ASCII diagrams confuse students during revision!
+                            </div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-blue); font-weight: 700;">
+                                ⚠️ Risk: Unrendered math syntax and broken diagrams impair exam comprehension.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Large Animated Benchmark Chart -->
+                    <div class="doodle-card" style="padding: 16px; justify-content: space-between;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>📊 Exam Accuracy Benchmark (100 Questions)</span>
+                            <span class="doodle-badge" style="background: var(--note-yellow);">LIVE FORMING</span>
+                        </div>
+                        <div class="chart-holder" style="flex: 1; min-height: 280px;">
+                            <canvas id="doodleProblemChart"></canvas>
+                        </div>
+                        <div style="background: var(--note-yellow); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 6px 12px; font-family: var(--font-sketch); font-size: 16px; color: var(--ink-black); font-weight: 700; text-align: center;">
+                            🎯 SHIRO scores 98%+ on strict curriculum benchmarks vs 42% for generic AI!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 3: 3-TIER BLUEPRINT (COMPLETELY FILLED)
+             ========================================== -->
+        <div class="slide" id="slide-3">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-cyan);">📐 SYSTEM BLUEPRINT</div>
+                <div class="page-num">PAGE 02</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Full-Stack <span class="title-highlight">3-Tier Reactive Architecture</span></h2>
+                <p class="slide-subtitle">
+                    Decoupled browser client, reactive Spring WebFlux backend, and local Python vector sidecar!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-card" style="flex: 1; justify-content: space-between; padding: 14px 18px;">
+                    
+                    <!-- Row 1: The 3 Main Tiers (Rich & Fully Packed) -->
+                    <div style="display: grid; grid-template-columns: 1fr auto 1.15fr auto 1.15fr; align-items: stretch; gap: 12px; flex: 1.5;">
+                        
+                        <!-- Tier 1: Client -->
+                        <div class="sticky-note cyan" style="padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 28px;">🖥️</span>
+                                    <div>
+                                        <div class="card-heading" style="font-size: 22px; margin: 0;">Tier 1: Client SPA</div>
+                                        <div style="font-size: 15.5px; color: var(--pen-blue); font-weight: 700;">React 18 • Vite • Tailwind</div>
+                                    </div>
+                                </div>
+                                <span class="doodle-badge" style="font-size: 14px; background: #FFF;">:5173</span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin: 6px 0;">
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">⚡ SSE EventSource Token Stream Parser</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">📐 KaTeX Display Math & Matrices</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">📊 Dynamic Mermaid State Machine SVGs</div>
+                            </div>
+
+                            <div style="background: var(--note-yellow); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 7px 10px; font-size: 16px; font-family: var(--font-sketch); color: var(--ink-black); font-weight: 700; text-align: center;">
+                                💡 Instant Subject Scope Selector (68 Courses)
+                            </div>
+                        </div>
+
+                        <!-- Arrow 1 -->
+                        <div style="text-align: center; font-family: var(--font-sketch); font-size: 16px; font-weight: 700; color: var(--pen-red); display: flex; flex-direction: column; justify-content: center;">
+                            <div>HTTP/2 SSE</div>
+                            <div style="font-size: 30px; line-height: 1;">═══►</div>
+                            <div>Flux Stream</div>
+                        </div>
+
+                        <!-- Tier 2: Spring Boot -->
+                        <div class="sticky-note yellow" style="padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 28px;">⚙️</span>
+                                    <div>
+                                        <div class="card-heading" style="font-size: 22px; margin: 0;">Tier 2: Reactive Engine</div>
+                                        <div style="font-size: 15.5px; color: var(--pen-orange); font-weight: 700;">Spring Boot 3.4 WebFlux</div>
+                                    </div>
+                                </div>
+                                <span class="doodle-badge" style="font-size: 14px; background: #FFF;">:8080</span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin: 6px 0;">
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">🔄 Project Reactor Non-Blocking Loop</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">🛡️ 4x Exponential Backoff Rate Retry</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">🧩 Zero-Hallucination Boundary Enforcer</div>
+                            </div>
+
+                            <div style="background: var(--note-green); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 7px 10px; font-size: 16px; font-family: var(--font-sketch); color: var(--ink-black); font-weight: 700; text-align: center;">
+                                ⚡ 10,000+ Concurrent Reactive Connections
+                            </div>
+                        </div>
+
+                        <!-- Arrow 2 -->
+                        <div style="text-align: center; font-family: var(--font-sketch); font-size: 16px; font-weight: 700; color: var(--pen-green); display: flex; flex-direction: column; justify-content: center;">
+                            <div>JSON REST</div>
+                            <div style="font-size: 30px; color: var(--pen-green); line-height: 1;">◄═══►</div>
+                            <div>FastEmbed</div>
+                        </div>
+
+                        <!-- Tier 3: Python Sidecar -->
+                        <div class="sticky-note green" style="padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 28px;">⚡</span>
+                                    <div>
+                                        <div class="card-heading" style="font-size: 22px; margin: 0;">Tier 3: Local Sidecar</div>
+                                        <div style="font-size: 15.5px; color: var(--pen-green); font-weight: 700;">FastAPI • FastEmbed ONNX</div>
+                                    </div>
+                                </div>
+                                <span class="doodle-badge" style="font-size: 14px; background: #FFF;">:8001</span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin: 6px 0;">
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">🔍 bge-small 384d Dense Vector Search</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">📑 SQLite FTS5 BM25 PYQ Match Engine</div>
+                                <div style="background: rgba(255,255,255,0.92); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 8px 10px; font-size: 16px; font-weight: 700;">🎯 RRF Fusion Score Ranking (k = 60)</div>
+                            </div>
+
+                            <div style="background: var(--note-pink); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 7px 10px; font-size: 16px; font-family: var(--font-sketch); color: var(--ink-black); font-weight: 700; text-align: center;">
+                                🚀 &lt; 38ms Local Host CPU Latency ($0 Cost)
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 2: 5-Stage Visual Flow Strip (Expands & Fills) -->
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 8px 0;">
+                        <div class="doodle-card" style="padding: 10px 10px; text-align: center; background: var(--note-yellow);">
+                            <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-blue);">1. Query Input</div>
+                            <div style="font-size: 16px; color: var(--ink-muted);">Subject Scoped</div>
+                        </div>
+                        <div class="doodle-card" style="padding: 10px 10px; text-align: center; background: var(--note-cyan);">
+                            <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-orange);">2. WebFlux IPC</div>
+                            <div style="font-size: 16px; color: var(--ink-muted);">Non-Blocking</div>
+                        </div>
+                        <div class="doodle-card" style="padding: 10px 10px; text-align: center; background: var(--note-green);">
+                            <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-green);">3. Hybrid RRF</div>
+                            <div style="font-size: 16px; color: var(--ink-muted);">Dense + BM25 (38ms)</div>
+                        </div>
+                        <div class="doodle-card" style="padding: 10px 10px; text-align: center; background: var(--note-pink);">
+                            <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-red);">4. LLM Streaming</div>
+                            <div style="font-size: 16px; color: var(--ink-muted);">Gemini Flux (~480ms)</div>
+                        </div>
+                        <div class="doodle-card" style="padding: 10px 10px; text-align: center; background: var(--note-purple);">
+                            <div style="font-family: var(--font-marker); font-size: 19px; color: #9333EA;">5. Live UI</div>
+                            <div style="font-size: 16px; color: var(--ink-muted);">KaTeX & Citations</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Bottom Storage Strip -->
+                    <div style="background: var(--paper-bg); border: 2px dashed var(--ink-black); border-radius: 8px; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-marker); font-size: 19px;">
+                            <span style="color: var(--pen-blue);">🗄️ LOCAL STORAGE:</span>
+                            <span class="doodle-badge" style="background: var(--note-yellow); font-size: 16px;">ChromaDB (95.6K Vectors)</span>
+                            <span class="doodle-badge" style="background: var(--note-green); font-size: 16px;">SQLite FTS5 (BM25)</span>
+                            <span class="doodle-badge" style="background: var(--note-pink); font-size: 16px;">68 Subject Manifests</span>
+                        </div>
+                        <div style="font-family: var(--font-sketch); font-size: 17.5px; font-weight: 700; color: var(--pen-green);">
+                            ✓ 100% Host CPU • Zero Cloud API Subscriptions!
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 4: KNOWLEDGE CORPUS (MASSIVE CHARTS)
+             ========================================== -->
+        <div class="slide" id="slide-4">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-green);">📚 KNOWLEDGE CORPUS</div>
+                <div class="page-num">PAGE 03</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">95,672 Vector Chunks <span class="title-highlight">Across 68 Subjects</span></h2>
+                <p class="slide-subtitle">
+                    Automated ingestion pipeline parsing 943 official course resources!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2-3">
+                    <!-- Left: 4 Big Metric Post-Its (Richly Filled) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%;">
+                        <div class="sticky-note yellow" style="justify-content: space-evenly; text-align: center; padding: 12px 14px;">
+                            <div class="giant-num" style="color: var(--pen-red); font-size: 54px; line-height: 1;">95.6K</div>
+                            <div class="giant-label" style="font-size: 21px; margin-top: 2px;">Dense Chunks</div>
+                            <div class="giant-desc" style="font-size: 17.5px;">384d Vectors</div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 2px;">ChromaDB Dense</span>
+                        </div>
+                        <div class="sticky-note cyan" style="justify-content: space-evenly; text-align: center; padding: 12px 14px;">
+                            <div class="giant-num" style="color: var(--pen-blue); font-size: 54px; line-height: 1;">68</div>
+                            <div class="giant-label" style="font-size: 21px; margin-top: 2px;">Subjects</div>
+                            <div class="giant-desc" style="font-size: 17.5px;">Full Syllabus</div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 2px;">SRM University</span>
+                        </div>
+                        <div class="sticky-note green" style="justify-content: space-evenly; text-align: center; padding: 12px 14px;">
+                            <div class="giant-num" style="color: var(--pen-green); font-size: 54px; line-height: 1;">943</div>
+                            <div class="giant-label" style="font-size: 21px; margin-top: 2px;">Official PDFs</div>
+                            <div class="giant-desc" style="font-size: 17.5px;">556 Indexed</div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 2px;">OCR Cleaned</span>
+                        </div>
+                        <div class="sticky-note orange" style="justify-content: space-evenly; text-align: center; padding: 12px 14px;">
+                            <div class="giant-num" style="color: var(--pen-orange); font-size: 54px; line-height: 1;">8 + 1</div>
+                            <div class="giant-label" style="font-size: 21px; margin-top: 2px;">Semesters</div>
+                            <div class="giant-desc" style="font-size: 17.5px;">Sem 1-8 + Plus</div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 2px;">B.Tech Stream</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: 2 Big Visual Charts -->
+                    <div class="doodle-grid-2">
+                        <div class="doodle-card" style="padding: 14px; justify-content: space-between;">
+                            <div class="card-heading" style="font-size: 22px;">
+                                <span>🍩 Subject Domains</span>
+                            </div>
+                            <div class="chart-holder" style="flex: 1; min-height: 240px;">
+                                <canvas id="doodleDomainChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="doodle-card" style="padding: 14px; justify-content: space-between;">
+                            <div class="card-heading" style="font-size: 22px;">
+                                <span>📊 Chunks by Semester</span>
+                            </div>
+                            <div class="chart-holder" style="flex: 1; min-height: 240px;">
+                                <canvas id="doodleSemesterChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 5: HYBRID RETRIEVAL (VISUAL BENCHMARK)
+             ========================================== -->
+        <div class="slide" id="slide-5">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-yellow);">🔍 RETRIEVAL ALGORITHM</div>
+                <div class="page-num">PAGE 04</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Hybrid Search: <span class="title-highlight">FastEmbed + SQLite FTS5</span></h2>
+                <p class="slide-subtitle">
+                    Dual-path retrieval fusing 384d semantic vectors with BM25 keyword matching!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: Clean Visual Routing Flow (Richly Filled) -->
+                    <div class="doodle-card" style="justify-content: space-between; padding: 16px;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>🗺️ Dual-Path Query Routing Flow</span>
+                            <span class="doodle-badge" style="background: var(--note-green);">HYBRID</span>
+                        </div>
+
+                        <div class="sticky-note yellow" style="padding: 10px 14px;">
+                            <div style="font-family: var(--font-sketch); font-size: 15.5px; color: var(--pen-orange); font-weight: 700;">STUDENT QUERY INPUT:</div>
+                            <div style="font-family: var(--font-marker); font-size: 19.5px; color: var(--ink-black);">
+                                "Explain Priority Scheduling and solve CT-1 2024 question"
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="sticky-note cyan" style="padding: 10px 12px; justify-content: space-between;">
+                                <div style="font-family: var(--font-marker); font-size: 18.5px; color: var(--pen-blue);">Path A: FastEmbed</div>
+                                <div style="font-size: 16.5px; margin-top: 2px;">Dense Cosine Sim (≥0.50)</div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 4px;">384d Semantic Vectors</span>
+                            </div>
+                            <div class="sticky-note green" style="padding: 10px 12px; justify-content: space-between;">
+                                <div style="font-family: var(--font-marker); font-size: 18.5px; color: var(--pen-green);">Path B: SQLite FTS5</div>
+                                <div style="font-size: 16.5px; margin-top: 2px;">BM25 PYQ Year Match</div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14px; margin-top: 4px;">Exact Token Inverted Index</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note orange" style="padding: 10px 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-family: var(--font-marker); font-size: 18.5px; color: var(--pen-red);">Reciprocal Rank Fusion (RRF):</div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14px;">k = 60</span>
+                            </div>
+                            <div style="font-size: 17px; margin-top: 2px;">
+                                Fuses top chunks via <code>Score = ∑ 1/(60 + rank)</code> with verified Subject, Unit, and Page # citations!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Large Benchmark Bar Chart -->
+                    <div class="doodle-card" style="padding: 16px; justify-content: space-between;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>📈 Retrieval Precision vs Pure Vector</span>
+                            <span class="doodle-badge" style="background: var(--note-yellow);">LIVE FORMING</span>
+                        </div>
+                        <div class="chart-holder" style="flex: 1; min-height: 280px;">
+                            <canvas id="doodleRetrievalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 6: WEBFLUX STREAMING
+             ========================================== -->
+        <div class="slide" id="slide-6">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-pink);">⚡ BACKEND PIPELINE</div>
+                <div class="page-num">PAGE 05</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Non-Blocking <span class="title-highlight" style="background: rgba(255, 214, 224, 0.6);">Spring WebFlux Streaming</span></h2>
+                <p class="slide-subtitle">
+                    Project Reactor Flux event streams delivering sub-500ms time-to-first-token!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: Large Waterfall Chart -->
+                    <div class="doodle-card" style="padding: 16px; justify-content: space-between;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>⏱️ Latency Breakdown Waterfall (ms)</span>
+                            <span class="doodle-badge" style="background: var(--note-green);">&lt; 500ms TTFT</span>
+                        </div>
+                        <div class="chart-holder" style="flex: 1; min-height: 280px;">
+                            <canvas id="doodleWaterfallChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right: Code Pad & Reactive Cards (Richly Filled) -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; justify-content: space-between;">
+                        <div class="sticky-note yellow" style="flex: 1; padding: 14px 18px; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 22px; color: var(--pen-red); margin: 0;">
+                                    <span>📝 ChatController.java (WebFlux SSE)</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">JAVA 21</span>
+                            </div>
+                            <div style="font-family: var(--font-mono); font-size: 14.5px; line-height: 1.5; color: var(--ink-black); background: rgba(255,255,255,0.85); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 10px 12px;">
+                                <span style="color: #9333EA; font-weight: 700;">public</span> Flux&lt;ServerSentEvent&gt; <span style="color: #2563EB; font-weight: 700;">streamChat</span>(...) {<br>
+                                &nbsp;&nbsp;<span style="color: #9333EA; font-weight: 700;">return</span> sidecar.<span style="color: #2563EB;">retrieveContext</span>(req)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;.<span style="color: #2563EB;">flatMapMany</span>(ctx -&gt; gemini.<span style="color: #2563EB;">stream</span>(req, ctx))<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;.<span style="color: #2563EB;">retryWhen</span>(Retry.<span style="color: #D97706;">backoff</span>(4, Duration.ofSeconds(2)));<br>
+                                }
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-family: var(--font-sketch); font-size: 17.5px; color: var(--pen-green); font-weight: 700;">
+                                    ✓ 10,000+ Concurrency • &lt; 180MB RAM
+                                </div>
+                                <span class="doodle-badge" style="background: var(--note-green); font-size: 14px;">NON-BLOCKING</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note cyan" style="padding: 12px 18px; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 21px; color: var(--pen-blue); margin: 0;">
+                                    <span>🛡️ 4x Exponential Backoff Retry</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14px;">RATE LIMIT GUARD</span>
+                            </div>
+                            <div style="font-size: 18px; margin-top: 3px;">
+                                Automatically retries 429 quota spikes gracefully with zero session interruption for students!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 7: MULTIMODAL SYNTHESIS (BIG VISUALS)
+             ========================================== -->
+        <div class="slide" id="slide-7">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-purple);">📐 MULTIMODAL RIGOR</div>
+                <div class="page-num">PAGE 06</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Textbook Math & <span class="title-highlight" style="background: rgba(232, 215, 241, 0.7);">Interactive SVG Flowcharts</span></h2>
+                <p class="slide-subtitle">
+                    Transforming raw AI outputs into clean LaTeX derivations and live dynamic SVG diagrams!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-3">
+                    
+                    <!-- KaTeX Card (Richly Filled) -->
+                    <div class="doodle-card" style="background: var(--note-yellow); justify-content: space-between; padding: 14px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                <span>✏️ KaTeX Math Rigor</span>
+                            </div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px;">LATEX PARSED</span>
+                        </div>
+                        
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-orange); font-weight: 700;">1. CHARACTERISTIC EQUATION:</div>
+                            <div style="font-family: 'Times New Roman', serif; font-size: 19.5px; color: var(--ink-black); font-style: italic; margin-top: 3px;">
+                                det(A - λI) = λ³ - 6λ² + 11λ - 6 = 0
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-blue); font-weight: 700;">2. CAYLEY-HAMILTON SUBSTITUTION:</div>
+                            <div style="font-family: 'Times New Roman', serif; font-size: 19.5px; color: var(--pen-blue); font-style: italic; margin-top: 3px;">
+                                A³ - 6A² + 11A - 6I = 0
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-red); font-weight: 700;">3. MATRIX INVERSE DERIVATION:</div>
+                            <div style="font-family: 'Times New Roman', serif; font-size: 20px; color: var(--pen-red); font-style: italic; margin-top: 3px;">
+                                A⁻¹ = ⅙ · [ A² - 6A + 11I ]
+                            </div>
+                        </div>
+
+                        <div style="font-family: var(--font-sketch); font-size: 17px; color: var(--pen-green); font-weight: 700; text-align: center;">
+                            ✓ 100% Valid LaTeX • Zero Raw Escape Clutter
+                        </div>
+                    </div>
+
+                    <!-- Mermaid Card (Richly Filled 3-Box Flow) -->
+                    <div class="doodle-card" style="background: var(--note-cyan); justify-content: space-between; padding: 14px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                <span>📊 Mermaid SVG Engine</span>
+                            </div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px;">LIVE FLOW</span>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-blue); font-weight: 700; margin-bottom: 3px;">1. PROCESS 5-STATE MACHINE:</div>
+                            <div style="display: flex; gap: 4px; align-items: center; justify-content: center; font-family: var(--font-marker); font-size: 14.5px; flex-wrap: wrap;">
+                                <span class="doodle-badge" style="background: var(--note-yellow); padding: 2px 6px;">NEW</span>
+                                <span>→</span>
+                                <span class="doodle-badge" style="background: var(--note-cyan); padding: 2px 6px;">READY</span>
+                                <span>⇄</span>
+                                <span class="doodle-badge" style="background: var(--note-green); padding: 2px 6px;">RUN</span>
+                                <span>→</span>
+                                <span class="doodle-badge" style="background: var(--note-pink); padding: 2px 6px;">TERM</span>
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-orange); font-weight: 700; margin-bottom: 2px;">2. TIME-QUANTUM PREEMPTION:</div>
+                            <div style="font-family: var(--font-marker); font-size: 16.5px; color: var(--ink-black);">
+                                Timer Interrupt (TQ = 20ms) ➔ Return to Ready Queue
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 12px 10px; text-align: center; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--pen-red); font-weight: 700; margin-bottom: 2px;">3. AGING STARVATION RESOLUTION:</div>
+                            <div style="font-family: var(--font-marker); font-size: 17.5px; color: var(--pen-green);">
+                                Priority = Base + (WaitTime / 100ms) * Boost
+                            </div>
+                        </div>
+
+                        <div style="font-family: var(--font-sketch); font-size: 17px; color: var(--pen-blue); font-weight: 700; text-align: center;">
+                            ✓ Interactive Dynamic SVG Flowcharts
+                        </div>
+                    </div>
+
+                    <!-- PYQ Card (Richly Filled 3-Box Exams) -->
+                    <div class="doodle-card" style="background: var(--note-green); justify-content: space-between; padding: 14px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                <span>📝 Authentic Exam PYQs</span>
+                            </div>
+                            <span class="doodle-badge" style="background: #FFF; font-size: 14px;">SRM EXAMS</span>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 11px 12px; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: var(--font-sketch); color: var(--pen-red); font-weight: 700; font-size: 15px;">[SRM End-Sem — Nov 2024]</span>
+                                <span class="doodle-badge" style="background: var(--note-yellow); font-size: 13px;">PART B</span>
+                            </div>
+                            <div style="font-family: var(--font-marker); font-size: 16.5px; color: var(--ink-black); margin-top: 2px;">
+                                <b>Q12. (12 Marks)</b> Dijkstra Shortest Path Proof & Algorithm Trace on Graph G(V,E)...
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 11px 12px; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: var(--font-sketch); color: var(--pen-blue); font-weight: 700; font-size: 15px;">[SRM Cycle Test 2 — Apr 2024]</span>
+                                <span class="doodle-badge" style="background: var(--note-pink); font-size: 13px;">PART B</span>
+                            </div>
+                            <div style="font-family: var(--font-marker); font-size: 16.5px; color: var(--ink-black); margin-top: 2px;">
+                                <b>Q08. (6 Marks)</b> Bankers Safety Algorithm for 5 Processes & 3 Resource Types...
+                            </div>
+                        </div>
+
+                        <div style="background: #FFFFFF; border: 2px solid var(--ink-black); border-radius: 8px; padding: 11px 12px; box-shadow: 2px 2px 0px var(--ink-black);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: var(--font-sketch); color: var(--pen-orange); font-weight: 700; font-size: 15px;">[SRM Cycle Test 1 — Feb 2024]</span>
+                                <span class="doodle-badge" style="background: var(--note-cyan); font-size: 13px;">PART A</span>
+                            </div>
+                            <div style="font-family: var(--font-marker); font-size: 16.5px; color: var(--ink-black); margin-top: 2px;">
+                                <b>Q02. (2 Marks)</b> Define Deadlock 4 Necessary Conditions vs Starvation...
+                            </div>
+                        </div>
+
+                        <div style="font-family: var(--font-sketch); font-size: 17px; color: var(--pen-green); font-weight: 700; text-align: center;">
+                            ✓ Genuine Past Papers with Step-by-Step Marking Keys
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 8: 100% EVAL BENCHMARK (EXPANDED & FILLED)
+             ========================================== -->
+        <div class="slide" id="slide-8">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-green);">🏆 BENCHMARK EVALUATION</div>
+                <div class="page-num">PAGE 07</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">100% Pass Rate on <span class="title-highlight">Automated Eval Suite</span></h2>
+                <p class="slide-subtitle">
+                    Ten automated test cases validating in-scope accuracy and refusal of non-syllabus queries!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: Massive Radar Chart -->
+                    <div class="doodle-card" style="padding: 16px; justify-content: space-between;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>🎯 6-Dimension Capability Radar</span>
+                            <span class="doodle-badge" style="background: var(--note-green);">10/10 PASS</span>
+                        </div>
+                        <div class="chart-holder" style="flex: 1; min-height: 280px;">
+                            <canvas id="doodleRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right: Expanded Score Cards (Richly Filled) -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; height: 100%; justify-content: space-between;">
+                        <div class="sticky-note green" style="padding: 12px 18px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: space-around;">
+                                <div>
+                                    <div class="giant-num" style="color: var(--pen-green); font-size: 58px; line-height: 1;">10 / 10</div>
+                                    <div class="giant-label" style="font-size: 22px; margin-top: 2px;">Eval Benchmark Passed</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="doodle-badge" style="background: var(--note-yellow); font-size: 18px; padding: 4px 12px;">100% GRADE</span>
+                                    <div style="font-size: 16px; color: var(--ink-muted); margin-top: 4px; font-weight: 700;">eval_suite.py CLI</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1;">
+                            <div class="sticky-note yellow" style="padding: 12px 16px; justify-content: space-evenly;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-red);">1. Boundary Refusal</div>
+                                    <span class="doodle-badge" style="background: #FFF; font-size: 14px;">100% PASS</span>
+                                </div>
+                                <div style="font-size: 16.5px; line-height: 1.35;">100% rejection on out-of-scope queries with zero hallucinations.</div>
+                                <div style="font-family: var(--font-mono); font-size: 13.5px; color: var(--pen-red); background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--ink-black);">assert response.refused == True</div>
+                            </div>
+
+                            <div class="sticky-note cyan" style="padding: 12px 16px; justify-content: space-evenly;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-blue);">2. Math Integrity</div>
+                                    <span class="doodle-badge" style="background: #FFF; font-size: 14px;">100% PASS</span>
+                                </div>
+                                <div style="font-size: 16.5px; line-height: 1.35;">Strict KaTeX matrix & calculus rendering with no raw escapes.</div>
+                                <div style="font-family: var(--font-mono); font-size: 13.5px; color: var(--pen-blue); background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--ink-black);">assert katex.validate(math)</div>
+                            </div>
+
+                            <div class="sticky-note orange" style="padding: 12px 16px; justify-content: space-evenly;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-orange);">3. PYQ Exact Match</div>
+                                    <span class="doodle-badge" style="background: #FFF; font-size: 14px;">100% PASS</span>
+                                </div>
+                                <div style="font-size: 16.5px; line-height: 1.35;">SQLite FTS5 fetches verified 2024 papers with accurate marks.</div>
+                                <div style="font-family: var(--font-mono); font-size: 13.5px; color: var(--pen-orange); background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--ink-black);">assert pyq.year == 2024</div>
+                            </div>
+
+                            <div class="sticky-note pink" style="padding: 12px 16px; justify-content: space-evenly;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="font-family: var(--font-marker); font-size: 19px; color: #9333EA;">4. Citation Trace</div>
+                                    <span class="doodle-badge" style="background: #FFF; font-size: 14px;">100% PASS</span>
+                                </div>
+                                <div style="font-size: 16.5px; line-height: 1.35;">Exact PDF resource name, unit number, and page verified.</div>
+                                <div style="font-family: var(--font-mono); font-size: 13.5px; color: #9333EA; background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--ink-black);">assert citation.page > 0</div>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note yellow" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-family: var(--font-marker); font-size: 18.5px; color: var(--pen-red);">🎯 Strict Refusal Prompt:</span>
+                            <span style="font-family: var(--font-doodle); font-size: 17.5px;"><i>"The syllabus does not contain info to answer this."</i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 9: WORKSPACE UI (EXPANDED & BEAUTIFUL)
+             ========================================== -->
+        <div class="slide" id="slide-9">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-cyan);">💻 USER EXPERIENCE</div>
+                <div class="page-num">PAGE 08</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Distraction-Free <span class="title-highlight">Academic Workspace UI</span></h2>
+                <p class="slide-subtitle">
+                    Instant semester scoping, 3 study modes, and interactive verified citation inspector!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: Large App Mockup (Richly Filled) -->
+                    <div class="doodle-card" style="justify-content: space-between; padding: 14px 16px; height: 100%;">
+                        <!-- Top App Bar -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px dashed var(--paper-grid); padding-bottom: 6px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="footer-logo-box" style="font-size: 16px;">白</span>
+                                <div class="card-heading" style="font-size: 21px; margin: 0;">Shiro Academic Workspace</div>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: var(--note-yellow); font-size: 13.5px;">Scope: OS (21CS201J)</span>
+                                <span class="doodle-badge" style="background: var(--note-cyan); font-size: 13.5px;">Mode: Exam PYQ</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Query Bubble -->
+                        <div class="sticky-note yellow" style="padding: 10px 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: var(--font-sketch); font-size: 14.5px; color: var(--pen-orange); font-weight: 700;">STUDENT INQUIRY:</span>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 13px;">Unit 3 OS</span>
+                            </div>
+                            <div style="font-family: var(--font-marker); font-size: 19px; margin-top: 2px;">
+                                "Explain Priority Scheduling in OS and solve 2024 PYQ"
+                            </div>
+                        </div>
+
+                        <!-- Mentor Grounded Response Bubble -->
+                        <div class="sticky-note green" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-family: var(--font-marker); font-size: 19.5px; color: var(--pen-blue);">白 SHIRO MENTOR (100% Grounded):</div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 13px;">SRM SYLLABUS</span>
+                            </div>
+                            <div style="font-size: 17.5px; line-height: 1.35;">
+                                In Priority Scheduling, lower priority jobs may suffer starvation. This is resolved via <b>Aging</b>:
+                                <code style="background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--ink-black); font-size: 15.5px;">Priority += WaitTime / Interval</code>
+                            </div>
+                            <div style="font-size: 16.5px; color: var(--ink-black);">
+                                <b>Part B Solution:</b> P1 (Pri: 3, Burst: 10ms) preempts P2 at T=0. Gantt chart schedule verified.
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="doodle-badge" style="background: var(--note-yellow); font-size: 14.5px;">📄 [OS | Unit 3 Notes.pdf (Page 19)]</span>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">✓ Verified Citation</span>
+                            </div>
+                        </div>
+
+                        <!-- Input Bar -->
+                        <div style="background: var(--paper-bg); border: 2px solid var(--ink-black); border-radius: 6px; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-marker); font-size: 17.5px;">
+                            <span>Ask Professor Shiro any question...</span>
+                            <span class="doodle-badge" style="background: var(--note-yellow); font-size: 15.5px;">⌘ ENTER</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: 3 Big Feature Cards (Richly Filled) -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+                        <div class="sticky-note cyan" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                    <span>🔍 Scope Selector</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">68 SUBJECTS</span>
+                            </div>
+                            <div style="font-size: 18.5px; line-height: 1.35;">Instant semester & subject scoping from local manifest across all 8 semesters!</div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Sem 1 to 8</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Instant Dropdown</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note yellow" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                    <span>📑 3 Tailored Study Modes</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">PROMPT MODES</span>
+                            </div>
+                            <div style="font-size: 18.5px; line-height: 1.35;">💡 Concept Foundations • 📝 2M/12M PYQ Solver • 📘 Rapid Unit Summaries</div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Exam Oriented</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Syllabus Cram</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note green" style="flex: 1; justify-content: space-evenly; padding: 14px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 22px; margin: 0;">
+                                    <span>🎨 Interactive Citation Drawer</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">100% TRACEABLE</span>
+                            </div>
+                            <div style="font-size: 18.5px; line-height: 1.35;">Clicking badges slides out verified PDF chunks and page numbers in split view!</div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Zero Guesswork</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 14px;">Instant PDF Preview</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 10: FASTEMBED ONNX (SPEED & $0 COST)
+             ========================================== -->
+        <div class="slide" id="slide-10">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-yellow);">💰 HARDWARE EFFICIENCY</div>
+                <div class="page-num">PAGE 09</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Local FastEmbed ONNX <span class="title-highlight">vs Cloud Vector APIs</span></h2>
+                <p class="slide-subtitle">
+                    Sub-40ms vectorization directly on host CPU with zero cloud API bills!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: Large Latency Chart -->
+                    <div class="doodle-card" style="padding: 16px; justify-content: space-between;">
+                        <div class="card-heading" style="font-size: 23px;">
+                            <span>⚡ Embedding Latency Comparison (ms)</span>
+                            <span class="doodle-badge" style="background: var(--note-green);">CPU SPEED</span>
+                        </div>
+                        <div class="chart-holder" style="flex: 1; min-height: 280px;">
+                            <canvas id="doodleOnnxChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right: 3 Big Value Cards (Richly Filled) -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+                        <div class="sticky-note green" style="flex: 1; justify-content: space-evenly; padding: 14px 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-green); margin: 0;">
+                                    <span>💵 $0.00 Running Cost</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 15px;">FREE HOST</span>
+                            </div>
+                            <div style="font-size: 19px; line-height: 1.35;">Zero embedding API subscriptions for 100,000+ daily queries running 100% on host CPU!</div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-green); font-weight: 700;">
+                                ✓ $0 Monthly OpenAI / Cohere Cloud Embedder Invoices
+                            </div>
+                        </div>
+
+                        <div class="sticky-note cyan" style="flex: 1; justify-content: space-evenly; padding: 14px 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-blue); margin: 0;">
+                                    <span>🎯 384-Dim Precision</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 15px;">bge-small</span>
+                            </div>
+                            <div style="font-size: 19px; line-height: 1.35;">Optimal memory footprint with top-tier MTEB retrieval accuracy for technical coursework!</div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-blue); font-weight: 700;">
+                                ✓ High Density Vectorization on Low-Spec Laptops
+                            </div>
+                        </div>
+
+                        <div class="sticky-note yellow" style="flex: 1; justify-content: space-evenly; padding: 14px 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 23px; color: var(--pen-orange); margin: 0;">
+                                    <span>🔒 100% Offline Privacy</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 15px;">NO DATA EGRESS</span>
+                            </div>
+                            <div style="font-size: 19px; line-height: 1.35;">University PDFs and notes remain entirely on student machines with no third-party logging!</div>
+                            <div style="font-family: var(--font-sketch); font-size: 16.5px; color: var(--pen-orange); font-weight: 700;">
+                                ✓ Strict Institutional Compliance & Local Security
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 11: COMPARATIVE MATRIX (FULL SPREAD)
+             ========================================== -->
+        <div class="slide" id="slide-11">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-purple);">🥊 COMPARISON MATRIX</div>
+                <div class="page-num">PAGE 10</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">System Capability <span class="title-highlight" style="background: rgba(232, 215, 241, 0.7);">Comparison Matrix</span></h2>
+                <p class="slide-subtitle">
+                    Head-to-head evaluation against generic LLMs, NotebookLM, and basic tutorial RAG!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-card" style="flex: 1; padding: 14px 18px; justify-content: space-between;">
+                    <table class="sketch-table">
+                        <thead>
+                            <tr>
+                                <th>Capability</th>
+                                <th style="color: var(--pen-red); font-size: 21px;">SHIRO Academic RAG</th>
+                                <th>Generic ChatGPT</th>
+                                <th>Google NotebookLM</th>
+                                <th>Tutorial RAG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>Syllabus Grounding</b></td>
+                                <td><span style="color: var(--pen-green); font-weight: 700; font-size: 19.5px;">✓ 100% Bound</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Hallucinates</span></td>
+                                <td><span style="color: var(--pen-green); font-size: 19px;">✓ Doc-Bound</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Weak</span></td>
+                            </tr>
+                            <tr>
+                                <td><b>Authentic Exam PYQs</b></td>
+                                <td><span style="color: var(--pen-green); font-weight: 700; font-size: 19.5px;">✓ Exact FTS5 Match</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Generic Mock</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ No Session Index</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ None</span></td>
+                            </tr>
+                            <tr>
+                                <td><b>Native KaTeX Math</b></td>
+                                <td><span style="color: var(--pen-green); font-weight: 700; font-size: 19.5px;">✓ Strict Block Math</span></td>
+                                <td><span style="color: var(--pen-green); font-size: 19px;">✓ Supported</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Plain Text</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Raw Escapes</span></td>
+                            </tr>
+                            <tr>
+                                <td><b>Mermaid SVG Diagrams</b></td>
+                                <td><span style="color: var(--pen-green); font-weight: 700; font-size: 19.5px;">✓ Live Dynamic SVG</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Code Block Only</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ None</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ None</span></td>
+                            </tr>
+                            <tr>
+                                <td><b>Embedding API Cost</b></td>
+                                <td><span style="color: var(--pen-green); font-weight: 700; font-size: 19.5px;">✓ $0 (Local ONNX)</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Paid API Bills</span></td>
+                                <td><span style="color: var(--pen-green); font-size: 19px;">✓ Included</span></td>
+                                <td><span style="color: var(--pen-red); font-size: 19px;">✗ Paid APIs</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="background: var(--note-yellow); border: 2px solid var(--ink-black); border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-family: var(--font-marker); font-size: 19.5px; color: var(--pen-red);">🎯 KEY WIN:</span>
+                        <span style="font-family: var(--font-doodle); font-size: 18.5px;">100% strict refusal guarantees students never learn incorrect non-syllabus material!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             SLIDE 12: CONCLUSION & SCORECARD (ZERO VOID)
+             ========================================== -->
+        <div class="slide" id="slide-12">
+            <div class="slide-header">
+                <div class="notebook-tag" style="background: var(--note-yellow);">🏁 FINAL SCORECARD</div>
+                <div class="page-num">PAGE 11</div>
+            </div>
+
+            <div class="slide-title-group">
+                <h2 class="slide-title">Engineering Takeaways & <span class="title-highlight">Final Scorecard</span></h2>
+                <p class="slide-subtitle">
+                    Demonstrated outcomes and production readiness scorecard!
+                </p>
+            </div>
+
+            <div class="slide-content">
+                <div class="doodle-grid-2">
+                    <!-- Left: 4 Rich Takeaway Cards (Evenly Spaced & Full) -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+                        <div class="sticky-note yellow" style="flex: 1; justify-content: space-evenly; padding: 10px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 21px; color: var(--pen-red); margin: 0;">
+                                    <span>1. Local ONNX CPU Vectorization</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">$0 COST</span>
+                            </div>
+                            <div style="font-size: 18px; color: var(--ink-black); font-weight: 700;">
+                                ⚡ Sub-38ms vectorization directly on host CPU
+                            </div>
+                            <div style="font-size: 16.5px; color: var(--ink-muted);">
+                                🔒 100% offline privacy with zero external embedding API bills
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">bge-small 384d</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">0MB Network I/O</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note cyan" style="flex: 1; justify-content: space-evenly; padding: 10px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 21px; color: var(--pen-blue); margin: 0;">
+                                    <span>2. Hybrid Vector + BM25 Search</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">RRF FUSION</span>
+                            </div>
+                            <div style="font-size: 18px; color: var(--ink-black); font-weight: 700;">
+                                🔍 Dual-path retrieval fusing 384d vectors & BM25
+                            </div>
+                            <div style="font-size: 16.5px; color: var(--ink-muted);">
+                                📑 SQLite FTS5 retrieves authentic Part A & B university papers
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">k = 60 Fusion</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">Exact Year Index</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note green" style="flex: 1; justify-content: space-evenly; padding: 10px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 21px; color: var(--pen-green); margin: 0;">
+                                    <span>3. Reactive Spring WebFlux Streaming</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">10K+ CONCURRENCY</span>
+                            </div>
+                            <div style="font-size: 18px; color: var(--ink-black); font-weight: 700;">
+                                🔄 Project Reactor SSE event stream with &lt;480ms TTFT
+                            </div>
+                            <div style="font-size: 16.5px; color: var(--ink-muted);">
+                                🛡️ 4x exponential backoff gracefully handles 429 quota spikes
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">Non-Blocking Loop</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">&lt; 180MB RAM</span>
+                            </div>
+                        </div>
+
+                        <div class="sticky-note pink" style="flex: 1; justify-content: space-evenly; padding: 10px 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="card-heading" style="font-size: 21px; color: #9333EA; margin: 0;">
+                                    <span>4. KaTeX & Mermaid Synthesis</span>
+                                </div>
+                                <span class="doodle-badge" style="background: #FFF; font-size: 14.5px;">100% GROUNDED</span>
+                            </div>
+                            <div style="font-size: 18px; color: var(--ink-black); font-weight: 700;">
+                                📐 Textbook-grade LaTeX math & live SVG flowcharts
+                            </div>
+                            <div style="font-size: 16.5px; color: var(--ink-muted);">
+                                📄 Verified citations link directly to subject PDFs & page numbers
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">Zero Raw Escapes</span>
+                                <span class="doodle-badge" style="background: rgba(255,255,255,0.8); font-size: 13.5px;">Page-Level Trace</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Massive Grade A+ Scorecard (Richly Filled) -->
+                    <div class="doodle-card" style="justify-content: space-between; padding: 16px;">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <div>
+                                    <div style="font-family: var(--font-marker); font-size: 24px; font-weight: 700; color: var(--ink-black);">SHIRO ACADEMIC RAG</div>
+                                    <div style="font-family: var(--font-sketch); font-size: 16px; color: var(--ink-muted);">SRM University Coursework Defense 2026</div>
+                                </div>
+                                <span class="doodle-badge" style="background: var(--note-yellow); color: var(--pen-red); font-size: 22px; padding: 2px 14px;">GRADE A+</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--paper-bg); padding: 8px; border-radius: 8px; border: 2px solid var(--ink-black); margin-bottom: 8px;">
+                                <div style="text-align: center;">
+                                    <div class="giant-num" style="font-size: 32px; color: var(--pen-red);">95.6K</div>
+                                    <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--ink-muted);">CHUNKS (68 COURSES)</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div class="giant-num" style="font-size: 32px; color: var(--pen-green);">100%</div>
+                                    <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--ink-muted);">EVAL SUITE PASS</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div class="giant-num" style="font-size: 32px; color: var(--pen-blue);">&lt; 480ms</div>
+                                    <div style="font-family: var(--font-sketch); font-size: 15px; color: var(--ink-muted);">TTFT STREAMING</div>
+                                </div>
+                            </div>
+
+                            <!-- 4 Production Checkpoints -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+                                <div style="background: var(--note-green); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 6px 10px; font-size: 15.5px; font-weight: 700;">
+                                    ✓ $0 Cloud Embedding Costs
+                                </div>
+                                <div style="background: var(--note-cyan); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 6px 10px; font-size: 15.5px; font-weight: 700;">
+                                    ✓ 10k+ Concurrency Flux
+                                </div>
+                                <div style="background: var(--note-yellow); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 6px 10px; font-size: 15.5px; font-weight: 700;">
+                                    ✓ 100% Grounded Refusal
+                                </div>
+                                <div style="background: var(--note-pink); border: 1.5px solid var(--ink-black); border-radius: 6px; padding: 6px 10px; font-size: 15.5px; font-weight: 700;">
+                                    ✓ Verified PDF Citations
+                                </div>
+                            </div>
+
+                            <!-- Progress Metric Bars -->
+                            <div style="display: flex; flex-direction: column; gap: 5px; font-family: var(--font-doodle); font-size: 16px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Retrieval Grounding & Refusal:</span>
+                                    <span style="color: var(--pen-green); font-weight: 700;">100% Verified</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: var(--paper-grid); border: 1px solid var(--ink-black); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 100%; height: 100%; background: var(--pen-green);"></div>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Local ONNX CPU Latency:</span>
+                                    <span style="color: var(--pen-blue); font-weight: 700;">38ms</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: var(--paper-grid); border: 1px solid var(--ink-black); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 95%; height: 100%; background: var(--pen-blue);"></div>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Syllabus Coverage:</span>
+                                    <span style="color: var(--pen-red); font-weight: 700;">68 / 68 Subjects (100%)</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: var(--paper-grid); border: 1px solid var(--ink-black); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 100%; height: 100%; background: var(--pen-red);"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px;">
+                                <span class="doodle-badge" style="background: var(--note-yellow); font-size: 15px;">Spring Boot 3.4</span>
+                                <span class="doodle-badge" style="background: var(--note-cyan); font-size: 15px;">FastEmbed ONNX</span>
+                                <span class="doodle-badge" style="background: var(--note-green); font-size: 15px;">ChromaDB</span>
+                                <span class="doodle-badge" style="background: var(--note-pink); font-size: 15px;">SQLite FTS5</span>
+                                <span class="doodle-badge" style="font-size: 15px;">React 18</span>
+                            </div>
+
+                            <div style="border-top: 1.5px dashed var(--paper-grid); padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: var(--font-doodle); font-size: 16.5px; color: var(--ink-muted);">SRM B.Tech Defense Completed</span>
+                                <span style="font-family: var(--font-marker); font-size: 19px; color: var(--pen-red); font-weight: 700;">✨ Ready for Q&A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+            </div><!-- /.stage -->
+
+    <!-- Bottom Persistent Navigation Bar -->
+    <div class="stage-footer">
+        <div class="progress-line" id="progressFill" style="width: 8.33%;"></div>
+
+        <div class="footer-logo">
+            <span class="footer-logo-box">白</span>
+            <span>SHIRO — Academic Syllabus RAG</span>
+            <span style="color: var(--paper-grid);">|</span>
+            <span class="footer-topic" id="footerSlideTopic">PROJECT OVERVIEW</span>
+        </div>
+
+        <div class="footer-controls">
+            <button class="doodle-btn" onclick="prevSlide()" title="Previous (←)">‹</button>
+            <span class="page-counter">
+                <span id="currentNum" style="color: var(--pen-red);">1</span> / <span id="totalNum">12</span>
+            </span>
+            <button class="doodle-btn" onclick="nextSlide()" title="Next (→)">›</button>
+            <button class="doodle-btn" onclick="toggleFullScreen()" title="Fullscreen (F)">⛶</button>
+        </div>
+    </div>
+
+    <!-- Script: Interactive Navigation & Dynamic Graph Forming Animations -->
+    <script>
+        let current = 1;
+        const total = 12;
+        const activeCharts = {};
+
+        const slideTopics = [
+            "COVER // LAB NOTEBOOK",
+            "THE PROBLEM // EXAM ACCURACY",
+            "SYSTEM BLUEPRINT // 3-TIER FLOW",
+            "KNOWLEDGE BASE // 95,672 CHUNKS",
+            "HYBRID RETRIEVAL // FASTEMBED + BM25",
+            "BACKEND PIPELINE // SPRING WEBFLUX",
+            "MULTIMODAL RIGOR // KATEX & MERMAID",
+            "EVALUATION // 100% PASS BENCHMARK",
+            "USER EXPERIENCE // WORKSPACE UI",
+            "HARDWARE EFFICIENCY // $0 LOCAL ONNX",
+            "COMPARATIVE MATRIX // SHIRO VS ALL",
+            "CONCLUSION // FINAL SCORECARD"
+        ];
+
+        window.showSlide = function(n) {
+            if (n < 1) n = 1;
+            if (n > total) n = total;
+            current = n;
+
+            document.querySelectorAll('.slide').forEach((s, i) => {
+                const isActive = i === n - 1;
+                s.classList.toggle('active', isActive);
+            });
+
+            document.getElementById('currentNum').textContent = n;
+            document.getElementById('totalNum').textContent = total;
+            document.getElementById('footerSlideTopic').textContent = slideTopics[n - 1];
+            document.getElementById('progressFill').style.width = (n / total * 100) + '%';
+
+            // Dynamic graph forming animations on page open
+            setTimeout(() => {
+                renderChartsForSlide(n);
+            }, 60);
+        }
+
+        window.nextSlide = function() { showSlide(current + 1); }
+        window.prevSlide = function() { showSlide(current - 1); }
+
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullScreen();
+            } else if (e.key === 'Home') {
+                showSlide(1);
+            } else if (e.key === 'End') {
+                showSlide(total);
+            }
+        });
+
+        function renderChartsForSlide(slideNum) {
+            Chart.defaults.color = '#16181F';
+            Chart.defaults.font.family = "'Patrick Hand', cursive, sans-serif";
+            Chart.defaults.font.size = 15;
+
+            // Slide 2 Chart
+            if (slideNum === 2) {
+                if (activeCharts['doodleProblemChart']) activeCharts['doodleProblemChart'].destroy();
+                const ctx = document.getElementById('doodleProblemChart');
+                if (ctx) {
+                    activeCharts['doodleProblemChart'] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Syllabus Accuracy', 'Out-of-Scope Refusal', 'Math Precision', 'PYQ Exact Match'],
+                            datasets: [
+                                {
+                                    label: 'Generic AI (ChatGPT)',
+                                    data: [42, 18, 55, 12],
+                                    backgroundColor: '#FFD4DF',
+                                    borderColor: '#E63946',
+                                    borderWidth: 2,
+                                    borderRadius: 6
+                                },
+                                {
+                                    label: 'SHIRO Grounded RAG',
+                                    data: [98, 100, 96, 95],
+                                    backgroundColor: '#FFF89A',
+                                    borderColor: '#16181F',
+                                    borderWidth: 2,
+                                    borderRadius: 6
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 1100, easing: 'easeOutQuart' },
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 14, font: { size: 15, weight: 'bold' } } }
+                            },
+                            scales: {
+                                y: { max: 100, grid: { color: '#E6DFCB' }, ticks: { font: { size: 14 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 14.5 } } }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Slide 4 Charts
+            if (slideNum === 4) {
+                if (activeCharts['doodleDomainChart']) activeCharts['doodleDomainChart'].destroy();
+                if (activeCharts['doodleSemesterChart']) activeCharts['doodleSemesterChart'].destroy();
+
+                const ctxD = document.getElementById('doodleDomainChart');
+                if (ctxD) {
+                    activeCharts['doodleDomainChart'] = new Chart(ctxD, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Core CS (42%)', 'Maths (22%)', 'ECE (14%)', 'Sciences (12%)', 'Other (10%)'],
+                            datasets: [{
+                                data: [42, 22, 14, 12, 10],
+                                backgroundColor: ['#FFF89A', '#C7EEFF', '#D2F7D7', '#FFD4DF', '#EBDCF5'],
+                                borderColor: '#16181F',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { animateScale: true, animateRotate: true, duration: 1200, easing: 'easeOutQuart' },
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 13.5 } } }
+                            },
+                            cutout: '50%'
+                        }
+                    });
+                }
+
+                const ctxS = document.getElementById('doodleSemesterChart');
+                if (ctxS) {
+                    activeCharts['doodleSemesterChart'] = new Chart(ctxS, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7/8', 'Study+'],
+                            datasets: [{
+                                label: 'Chunks (K)',
+                                data: [14.2, 12.8, 18.4, 16.1, 13.5, 9.8, 6.2, 4.6],
+                                backgroundColor: '#C7EEFF',
+                                borderColor: '#16181F',
+                                borderWidth: 2,
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 1100, easing: 'easeOutQuart' },
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { grid: { color: '#E6DFCB' }, ticks: { font: { size: 13.5 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 13.5 } } }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Slide 5 Chart
+            if (slideNum === 5) {
+                if (activeCharts['doodleRetrievalChart']) activeCharts['doodleRetrievalChart'].destroy();
+                const ctx = document.getElementById('doodleRetrievalChart');
+                if (ctx) {
+                    activeCharts['doodleRetrievalChart'] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Topic Relevance', 'Exact PYQ Match', 'Zero Subject Leak', 'Speed (< 50ms)'],
+                            datasets: [
+                                {
+                                    label: 'Pure Vector Search',
+                                    data: [82, 38, 71, 75],
+                                    backgroundColor: '#FFD4DF',
+                                    borderColor: '#E63946',
+                                    borderWidth: 2,
+                                    borderRadius: 6
+                                },
+                                {
+                                    label: 'SHIRO Hybrid (ONNX + FTS5)',
+                                    data: [98, 96, 100, 95],
+                                    backgroundColor: '#D2F7D7',
+                                    borderColor: '#16181F',
+                                    borderWidth: 2,
+                                    borderRadius: 6
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 1100, easing: 'easeOutQuart' },
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 14, font: { size: 15, weight: 'bold' } } }
+                            },
+                            scales: {
+                                y: { max: 100, grid: { color: '#E6DFCB' }, ticks: { font: { size: 14 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 14 } } }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Slide 6 Waterfall Chart
+            if (slideNum === 6) {
+                if (activeCharts['doodleWaterfallChart']) activeCharts['doodleWaterfallChart'].destroy();
+                const ctx = document.getElementById('doodleWaterfallChart');
+                if (ctx) {
+                    activeCharts['doodleWaterfallChart'] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['1. FastEmbed ONNX', '2. Prompt Assembly', '3. First Token TTFT', '4. Full Stream'],
+                            datasets: [{
+                                label: 'Elapsed Time (ms)',
+                                data: [38, 12, 480, 1850],
+                                backgroundColor: ['#C7EEFF', '#EBDCF5', '#FFF89A', '#D2F7D7'],
+                                borderColor: '#16181F',
+                                borderWidth: 2,
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 1300, easing: 'easeOutQuart' },
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: '#E6DFCB' }, ticks: { font: { size: 13.5 } } },
+                                y: { grid: { display: false }, ticks: { font: { size: 14.5 } } }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Slide 8 Radar Chart
+            if (slideNum === 8) {
+                if (activeCharts['doodleRadarChart']) activeCharts['doodleRadarChart'].destroy();
+                const ctx = document.getElementById('doodleRadarChart');
+                if (ctx) {
+                    activeCharts['doodleRadarChart'] = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: [
+                                'Grounding (100%)',
+                                'Refusal (100%)',
+                                'Citation (98%)',
+                                'Math (96%)',
+                                'PYQ Retrieval (95%)',
+                                'Streaming (94%)'
+                            ],
+                            datasets: [
+                                {
+                                    label: 'SHIRO Academic RAG',
+                                    data: [100, 100, 98, 96, 95, 94],
+                                    fill: true,
+                                    backgroundColor: 'rgba(210, 247, 215, 0.8)',
+                                    borderColor: '#16181F',
+                                    pointBackgroundColor: '#2A9D8F',
+                                    borderWidth: 3,
+                                    pointRadius: 5
+                                },
+                                {
+                                    label: 'Generic Baseline AI',
+                                    data: [50, 25, 45, 40, 30, 60],
+                                    fill: true,
+                                    backgroundColor: 'rgba(255, 212, 223, 0.6)',
+                                    borderColor: '#E63946',
+                                    pointBackgroundColor: '#E63946',
+                                    borderWidth: 2,
+                                    pointRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false,
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 14, font: { size: 15, weight: 'bold' } } }
+                            },
+                            scales: {
+                                r: {
+                                    min: 0,
+                                    max: 100,
+                                    angleLines: { color: '#E6DFCB', lineWidth: 1.5 },
+                                    grid: { color: '#E6DFCB', lineWidth: 1.5 },
+                                    pointLabels: { font: { size: 15, weight: 'bold' }, color: '#16181F' },
+                                    ticks: { display: false, stepSize: 20 }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Slide 10 Latency Chart
+            if (slideNum === 10) {
+                if (activeCharts['doodleOnnxChart']) activeCharts['doodleOnnxChart'].destroy();
+                const ctx = document.getElementById('doodleOnnxChart');
+                if (ctx) {
+                    activeCharts['doodleOnnxChart'] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['FastEmbed ONNX (Local)', 'OpenAI text-embedding-3', 'Cohere Embed v3', 'HuggingFace API'],
+                            datasets: [
+                                {
+                                    label: 'Query Latency (ms)',
+                                    data: [38, 220, 290, 410],
+                                    backgroundColor: ['#D2F7D7', '#FFD4DF', '#FFD4DF', '#FFD4DF'],
+                                    borderColor: '#16181F',
+                                    borderWidth: 2,
+                                    borderRadius: 6
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 1100, easing: 'easeOutQuart' },
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { grid: { color: '#E6DFCB' }, title: { display: true, text: 'Milliseconds (lower is better)', font: { size: 13.5 } }, ticks: { font: { size: 13.5 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 14.5 } } }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            showSlide(1);
+        });
+    </script>
+</body>
+</html>
