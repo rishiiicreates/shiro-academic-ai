@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+# Fallback decompression if not extracted at build time
 if [ -f /app/data/the_helper_rag.db.gz ] && [ ! -f /app/data/the_helper_rag.db ]; then
     echo "Decompressing the_helper_rag.db..."
     gunzip -k -f /app/data/the_helper_rag.db.gz || true
@@ -18,7 +19,7 @@ mkdir -p /app/data/images
 echo "Starting Python Sidecar on :8001"
 cd /app/sidecar && python sidecar_app.py &
 
-for i in $(seq 1 30); do
+for i in $(seq 1 45); do
     if curl -s http://127.0.0.1:8001/health > /dev/null 2>&1; then
         echo "Python Sidecar is ready!"
         break
@@ -26,5 +27,6 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-echo "Starting Spring Boot on :${PORT:-8080}"
-cd /app && exec java -Dserver.port=${PORT:-8080} -jar /app/backend.jar
+JAVA_OPTS="-XX:+UseSerialGC -Xms64m -Xmx192m -Xss512k -XX:MaxMetaspaceSize=96m"
+echo "Starting Spring Boot on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}"
+cd /app && exec java ${JAVA_OPTS} -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar /app/backend.jar

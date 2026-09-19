@@ -1,14 +1,21 @@
-    services:
-      - type: web
-        name: shiro-academic-backend
-        runtime: docker
-        dockerfilePath: ./Dockerfile
-        plan: free
-        region: oregon
-        envVars:
-          - key: GEMINI_API_KEY
-            sync: false
-          - key: PORT
-            value: "8080"
-    RENDER
-    echo "✅ render.yaml created"
+services:
+  - type: web
+    name: shiro-academic-ai
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: PORT
+        value: "8080"
+      - key: SIDECAR_URL
+        value: http://127.0.0.1:8001
+      - key: DATA_DIR
+        value: /app/data
+      - key: EMBEDDINGS_DIR
+        value: /app/data

@@ -17,6 +17,16 @@ RUN pip install --no-cache-dir -r /app/sidecar/requirements.txt
 COPY sidecar/ /app/sidecar/
 COPY --from=backend-builder /build/target/shiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
+# Pre-extract data files during build so runtime container boot is instant
+RUN if [ -f /app/data/the_helper_rag.db.gz ]; then \
+        gunzip -k -f /app/data/the_helper_rag.db.gz && rm -f /app/data/the_helper_rag.db.gz; \
+    fi && \
+    if [ -f /app/data/chroma_db.tar.gz.part_aa ]; then \
+        cat /app/data/chroma_db.tar.gz.part_* > /tmp/chroma_db.tar.gz && \
+        tar -xzf /tmp/chroma_db.tar.gz -C /app/data/ && \
+        rm -f /tmp/chroma_db.tar.gz /app/data/chroma_db.tar.gz.part_*; \
+    fi && \
+    mkdir -p /app/data/images
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 ENV PORT=8080
