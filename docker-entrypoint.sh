@@ -16,20 +16,33 @@ fi
 
 mkdir -p /app/data/images
 
-echo "Starting Python Sidecar on :8001"
-cd /app/sidecar && python sidecar_app.py &
-
-for i in $(seq 1 45); do
-    if curl -s http://127.0.0.1:8001/health > /dev/null 2>&1; then
-        echo "Python Sidecar is ready!"
-        break
-    fi
-    sleep 1
-done
-
 echo "=== Java Environment ==="
 java -version
 
 JAVA_OPTS="-Xms24m -Xmx48m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:CICompilerCount=1 -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
-echo "Starting Spring Boot on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}"
-cd /app && exec java ${JAVA_OPTS} -jar /app/backend.jar --server.port=${PORT:-8080} --server.address=0.0.0.0
+echo "Starting Spring Boot immediately on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}..."
+cd /app && java ${JAVA_OPTS} -jar /app/backend.jar --server.port=${PORT:-8080} --server.address=0.0.0.0 &
+SPRING_PID=$!
+
+(
+    sleep 2
+    echo "Starting Python Sidecar on :8001..."
+    cd /app/sidecar && python sidecar_app.py
+) &
+SIDECAR_PID=$!
+
+cleanup() {
+    echo "Shutting down background services..."
+    kill -TERM "$SIDECAR_PID" 2>/dev/null || true
+    kill -TERM "$SPRING_PID" 2>/dev/null || true
+    wait "$SIDECAR_PID" 2>/dev/null || true
+    wait "$SPRING_PID" 2>/dev/null || true
+}
+trap cleanup SIGINT SIGTERM EXIT
+
+# Monitor both processes. If either crashes, exit container.
+while kill -0 "$SPRING_PID" 2>/dev/null && kill -0 "$SIDECAR_PID" 2>/dev/null; do
+    sleep 2
+done
+
+cleanup

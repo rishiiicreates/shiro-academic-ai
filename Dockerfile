@@ -14,6 +14,8 @@ RUN apt-get update \
 WORKDIR /app
 COPY sidecar/requirements.txt /app/sidecar/requirements.txt
 RUN pip install --no-cache-dir -r /app/sidecar/requirements.txt
+# Pre-download FastEmbed ONNX model during build so container startup is instant
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='BAAI/bge-small-en-v1.5', threads=1)"
 COPY sidecar/ /app/sidecar/
 COPY --from=backend-builder /build/target/shiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
