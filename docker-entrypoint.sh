@@ -27,6 +27,9 @@ for i in $(seq 1 45); do
     sleep 1
 done
 
-JAVA_OPTS="-XX:+UseSerialGC -Xms64m -Xmx192m -Xss512k -XX:MaxMetaspaceSize=96m"
+echo "=== Java Environment ==="
+java -version
+
+JAVA_OPTS="-XX:MaxRAMPercentage=60.0 -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
 echo "Starting Spring Boot on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}"
-cd /app && exec java ${JAVA_OPTS} -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar /app/backend.jar
+cd /app && exec java ${JAVA_OPTS} -jar /app/backend.jar --server.port=${PORT:-8080} --server.address=0.0.0.0
