@@ -420,8 +420,8 @@ def detect_subject_from_query(text: str, semester_hint: Optional[str] = None) ->
 def get_model() -> TextEmbedding:
     global _embedding_model
     if _embedding_model is None:
-        print("[Sidecar] Initializing BAAI/bge-small-en-v1.5 fastembed ONNX model...")
-        _embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        print("[Sidecar] Initializing BAAI/bge-small-en-v1.5 fastembed ONNX model (threads=1)...")
+        _embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=1)
     return _embedding_model
 
 def get_collection():
@@ -439,6 +439,7 @@ def get_db() -> sqlite3.Connection:
         _sqlite_conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         _sqlite_conn.row_factory = sqlite3.Row
         _sqlite_conn.execute("PRAGMA journal_mode = WAL;")
+        _sqlite_conn.execute("PRAGMA cache_size = -8000;")
     return _sqlite_conn
 
 def get_manifest() -> Dict[str, Any]:

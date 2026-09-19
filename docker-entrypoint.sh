@@ -30,6 +30,6 @@ done
 echo "=== Java Environment ==="
 java -version
 
-JAVA_OPTS="-XX:MaxRAMPercentage=60.0 -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
+JAVA_OPTS="-Xms24m -Xmx48m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:CICompilerCount=1 -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
 echo "Starting Spring Boot on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}"
 cd /app && exec java ${JAVA_OPTS} -jar /app/backend.jar --server.port=${PORT:-8080} --server.address=0.0.0.0
