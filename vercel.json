@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://shiro-academic-ai.onrender.com/api/$1"
+      "destination": "https://shiro-20-production.up.railway.app/api/$1"
     },
     {
       "source": "/images/(.*)",
-      "destination": "https://shiro-academic-ai.onrender.com/images/$1"
+      "destination": "https://shiro-20-production.up.railway.app/images/$1"
     },
     {
       "source": "/(.*)",
