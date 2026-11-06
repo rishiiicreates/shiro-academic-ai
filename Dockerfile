@@ -19,9 +19,19 @@ RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='BA
 COPY sidecar/ /app/sidecar/
 COPY --from=backend-builder /build/target/shiro-backend-1.0.0.jar /app/backend.jar
 COPY data/ /app/data/
-# Pre-extract data files during build so runtime container boot is instant
-RUN if [ -f /app/data/the_helper_rag.db.gz ]; then \
+# Download and pre-extract data files during build so runtime container boot is instant
+RUN if [ ! -f /app/data/the_helper_rag.db ] && [ ! -f /app/data/the_helper_rag.db.gz ]; then \
+        echo "Downloading the_helper_rag.db.gz from GitHub..." && \
+        curl -fSL -o /app/data/the_helper_rag.db.gz "https://raw.githubusercontent.com/rishiiicreates/shiro-academic-ai/main/data/the_helper_rag.db.gz"; \
+    fi && \
+    if [ -f /app/data/the_helper_rag.db.gz ]; then \
         gunzip -k -f /app/data/the_helper_rag.db.gz && rm -f /app/data/the_helper_rag.db.gz; \
+    fi && \
+    if [ ! -d /app/data/chroma_db ] && [ ! -f /app/data/chroma_db.tar.gz.part_aa ]; then \
+        echo "Downloading ChromaDB parts from GitHub..." && \
+        for part in aa ab ac ad ae; do \
+            curl -fSL -o /app/data/chroma_db.tar.gz.part_$part "https://raw.githubusercontent.com/rishiiicreates/shiro-academic-ai/main/data/chroma_db.tar.gz.part_$part"; \
+        done; \
     fi && \
     if [ -f /app/data/chroma_db.tar.gz.part_aa ]; then \
         cat /app/data/chroma_db.tar.gz.part_* > /tmp/chroma_db.tar.gz && \

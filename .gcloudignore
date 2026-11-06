@@ -1,0 +1,38 @@
+# .gcloudignore for ChiroShiro Backend Cloud Run build
+.git/
+.gitignore
+.gcloudignore
+node_modules/
+frontend/
+eval/
+.DS_Store
+*.log
+*.pptx
+*.pptx.png
+*.png
+*.pdf
+presentation.html
+ChiroShiro_Master_Dossier.html
+backend/target/
+sidecar/.venv/
+sidecar/__pycache__/
+
+# Root python scripts only (do NOT ignore sidecar/*.py)
+/*.py
+
+# Ignore uncompressed data files (only upload compressed parts)
+data/images/
+data/chroma_db/
+data/the_helper_rag.db
+data/the_helper_rag.db-shm
+data/the_helper_rag.db-wal
+data/corpus.db
+data/threads.json
+data/images_manifest.json
+
+# Explicitly KEEP compressed database parts, manifest, and sidecar python scripts
+!data/chroma_db.tar.gz.part_*
+!data/the_helper_rag.db.gz
+!data/manifest.json
+!sidecar/sidecar_app.py
+!sidecar/extract_images.py

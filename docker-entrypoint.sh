@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+export PYTHONUNBUFFERED=1
+
 # Fallback decompression if not extracted at build time
 if [ -f /app/data/the_helper_rag.db.gz ] && [ ! -f /app/data/the_helper_rag.db ]; then
     echo "Decompressing the_helper_rag.db..."
@@ -19,17 +21,22 @@ mkdir -p /app/data/images
 echo "=== Java Environment ==="
 java -version
 
-JAVA_OPTS="-Xms24m -Xmx48m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:CICompilerCount=1 -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
+echo "=== Checking sidecar files ==="
+ls -la /app/sidecar/
+
+JAVA_OPTS="${JAVA_OPTS:--Xms64m -Xmx256m -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true}"
 echo "Starting Spring Boot immediately on :${PORT:-8080} with JAVA_OPTS=${JAVA_OPTS}..."
 cd /app && java ${JAVA_OPTS} -jar /app/backend.jar --server.port=${PORT:-8080} --server.address=0.0.0.0 &
 SPRING_PID=$!
 
+echo "Starting Python Sidecar on :8001..."
 (
-    sleep 2
-    echo "Starting Python Sidecar on :8001..."
-    cd /app/sidecar && python sidecar_app.py
+    cd /app/sidecar
+    exec python -u sidecar_app.py
 ) &
 SIDECAR_PID=$!
+
+echo "Background services launched: Spring Boot (PID $SPRING_PID), Sidecar (PID $SIDECAR_PID)"
 
 cleanup() {
     echo "Shutting down background services..."
@@ -45,4 +52,5 @@ while kill -0 "$SPRING_PID" 2>/dev/null && kill -0 "$SIDECAR_PID" 2>/dev/null; d
     sleep 2
 done
 
+echo "One of the processes exited. Spring running: $(kill -0 "$SPRING_PID" 2>/dev/null && echo YES || echo NO), Sidecar running: $(kill -0 "$SIDECAR_PID" 2>/dev/null && echo YES || echo NO)"
 cleanup
